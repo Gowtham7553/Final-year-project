@@ -11,112 +11,146 @@ import { Ionicons } from "@expo/vector-icons";
 
 export default function HomeScreen({ navigation }) {
   return (
-    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-      {/* Header */}
-      <View style={styles.header}>
-        <View style={styles.headerLeft}>
-          
-          <Text style={styles.logoText}>Hope Connect</Text>
+    <View style={styles.container}>
+      <ScrollView showsVerticalScrollIndicator={false}>
+        {/* Header */}
+        <View style={styles.header}>
+          <View style={styles.headerLeft}>
+            <Image
+              source={require("../assets/5686541.png")}
+              style={styles.logo}
+            />
+            <Text style={styles.logoText}>Hope Connect</Text>
+          </View>
+          <TouchableOpacity onPress={() => navigation.navigate("Notifications")}>
+            <Ionicons name="notifications-outline" size={22} />
+          </TouchableOpacity>
         </View>
-        <Ionicons name="notifications-outline" size={22} />
-      </View>
 
-      {/* Hero Card */}
-      <View style={styles.heroCard}>
-       
-        <View style={styles.heroOverlay}>
-          <Text style={styles.heroTag}>COMMUNITY FIRST</Text>
-          <Text style={styles.heroTitle}>
-            Connecting hearts,{`\n`}changing lives
-          </Text>
-          <Text style={styles.heroDesc}>
-            Join our community to bridge the gap between resources and those in
-            need.
-          </Text>
+        {/* Hero Card */}
+        <View style={styles.heroCard}>
+          <Image
+            source={require("../assets/childrens.jpg")}
+            style={styles.heroImage}
+          />
+          <View style={styles.heroOverlay}>
+            <Text style={styles.heroTag}>COMMUNITY FIRST</Text>
+            <Text style={styles.heroTitle}>
+              Connecting hearts,{`\n`}changing lives
+            </Text>
+            <Text style={styles.heroDesc}>
+              Join our community to bridge the gap between resources and those in
+              need.
+            </Text>
 
-          <View style={styles.stats}>
-            <View>
-              <Text style={styles.statNumber}>500+</Text>
-              <Text style={styles.statLabel}>Lives impacted</Text>
-            </View>
-            <View>
-              <Text style={styles.statNumber}>120</Text>
-              <Text style={styles.statLabel}>Active Homes</Text>
+            <View style={styles.stats}>
+              <View>
+                <Text style={styles.statNumber}>500+</Text>
+                <Text style={styles.statLabel}>Lives impacted</Text>
+              </View>
+              <View>
+                <Text style={styles.statNumber}>120</Text>
+                <Text style={styles.statLabel}>Active Homes</Text>
+              </View>
             </View>
           </View>
         </View>
-      </View>
 
-      {/* Choose Path */}
-      <Text style={styles.sectionTitle}>Choose your path</Text>
-      <Text style={styles.sectionSub}>
-        Select how you would like to contribute today.
-      </Text>
-
-      {/* Volunteer Card */}
-      <View style={styles.roleCard}>
-       
-        <Text style={styles.roleTag}>VOLUNTEER</Text>
-        <Text style={styles.roleTitle}>I want to Volunteer</Text>
-        <Text style={styles.roleDesc}>
-          Offer your time and skills to mentor children and support local
-          communities.
+        {/* Choose Path */}
+        <Text style={styles.sectionTitle}>Choose your path</Text>
+        <Text style={styles.sectionSub}>
+          Select how you would like to contribute today.
         </Text>
 
-        <TouchableOpacity
-          style={styles.roleButton}
-          onPress={() => navigation.navigate("SignUp")}
-        >
-          <Text style={styles.roleButtonText}>Join as Volunteer</Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* Partner Card */}
-      <View style={styles.roleCard}>
-        
-        <Text style={styles.roleTag}>PARTNER</Text>
-        <Text style={styles.roleTitle}>I represent a Home</Text>
-        <Text style={styles.roleDesc}>
-          Register your children’s home to receive support, resources, and
-          volunteer aid.
-        </Text>
-
-        <TouchableOpacity style={styles.roleButton}>
-          <Text style={styles.roleButtonText}>Register Home</Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* Select Role */}
-      <TouchableOpacity style={styles.selectButton}>
-        <Text style={styles.selectButtonText}>Select Role →</Text>
-      </TouchableOpacity>
-
-      {/* Impact Stories */}
-      <View style={styles.storyHeader}>
-        <Text style={styles.sectionTitle}>Impact Stories</Text>
-        <Text style={styles.viewAll}>View all</Text>
-      </View>
-
-      <View style={styles.storyRow}>
-        <View style={styles.storyCard}>
-         
-          <Text style={styles.storyTag}>Success Story</Text>
-          <Text style={styles.storyTitle}>
-            How Sarah found her passion in teaching
+        {/* Volunteer Card */}
+        <View style={styles.roleCard}>
+          <Image
+            source={require("../assets/download.jpg")}
+            style={styles.roleImage}
+          />
+          <Text style={styles.roleTag}>VOLUNTEER</Text>
+          <Text style={styles.roleTitle}>I want to Volunteer</Text>
+          <Text style={styles.roleDesc}>
+            Offer your time and skills to mentor children and support local
+            communities.
           </Text>
+
+          <TouchableOpacity
+            style={styles.roleButton}
+            onPress={() => navigation.navigate("SignUp")}
+          >
+            <Text style={styles.roleButtonText}>Join as Volunteer</Text>
+          </TouchableOpacity>
         </View>
 
-        <View style={styles.storyCard}>
-         
-          <Text style={styles.storyTag}>Community</Text>
-          <Text style={styles.storyTitle}>
-            Renovating the Downtown Shelter
+        {/* Partner Card */}
+        <View style={styles.roleCard}>
+          <Image
+            source={require("../assets/images.jpg")}
+            style={styles.roleImage}
+          />
+          <Text style={styles.roleTag}>PARTNER</Text>
+          <Text style={styles.roleTitle}>I represent a Home</Text>
+          <Text style={styles.roleDesc}>
+            Register your children's home to receive support, resources, and
+            volunteer aid.
           </Text>
-        </View>
-      </View>
 
-      <View style={{ height: 40 }} />
-    </ScrollView>
+          <TouchableOpacity
+            style={styles.roleButton}
+            onPress={() => navigation.navigate("RegisterHome")}
+          >
+            <Text style={styles.roleButtonText}>Register Home</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Select Role */}
+        <TouchableOpacity style={styles.selectButton}
+          onPress={() => navigation.navigate("RoleSelect")}>
+          <Text style={styles.selectButtonText}>Select Role</Text>
+        </TouchableOpacity>
+
+        {/* Impact Stories */}
+        <View style={styles.storyHeader}>
+          <Text style={styles.sectionTitle}>Impact Stories</Text>
+          <Text style={styles.viewAll}>View all</Text>
+        </View>
+
+        <View style={styles.storyRow}>
+          <View style={styles.storyCard}>
+            <Image
+              source={require("../assets/teacher.jpg")}
+              style={styles.storyImage}
+            />
+            <Text style={styles.storyTag}>Success Story</Text>
+            <Text style={styles.storyTitle}>
+              How Sarah found her passion in teaching
+            </Text>
+          </View>
+
+          <View style={styles.storyCard}>
+            <Image
+              source={require("../assets/renovating.jpg")}
+              style={styles.storyImage}
+            />
+            <Text style={styles.storyTag}>Community</Text>
+            <Text style={styles.storyTitle}>
+              Renovating the Downtown Shelter
+            </Text>
+          </View>
+        </View>
+
+        <View style={{ height: 80 }} />
+      </ScrollView>
+
+      {/* Bottom Navigation */}
+      <View style={styles.bottomNav}>
+        <Ionicons name="home" size={22} color="#7C3AED" />
+        <Ionicons name="newspaper-outline" size={22} color="#9CA3AF" />
+        <Ionicons name="heart-outline" size={22} color="#9CA3AF" />
+        <Ionicons name="person-outline" size={22} color="#9CA3AF" />
+      </View>
+    </View>
   );
 }
 
@@ -166,14 +200,13 @@ const styles = StyleSheet.create({
 
   heroOverlay: {
     position: "absolute",
-    padding: 16,
     bottom: 0,
+    padding: 16,
   },
 
   heroTag: {
     color: "#E9D5FF",
     fontSize: 12,
-    marginBottom: 6,
   },
 
   heroTitle: {
@@ -184,7 +217,7 @@ const styles = StyleSheet.create({
 
   heroDesc: {
     color: "#E5E7EB",
-    marginVertical: 8,
+    marginVertical: 6,
   },
 
   stats: {
@@ -196,7 +229,6 @@ const styles = StyleSheet.create({
   statNumber: {
     color: "#fff",
     fontWeight: "800",
-    fontSize: 16,
   },
 
   statLabel: {
@@ -238,7 +270,6 @@ const styles = StyleSheet.create({
   roleTitle: {
     fontSize: 18,
     fontWeight: "800",
-    marginVertical: 4,
   },
 
   roleDesc: {
@@ -312,5 +343,19 @@ const styles = StyleSheet.create({
   storyTitle: {
     fontWeight: "700",
     fontSize: 14,
+  },
+
+  bottomNav: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 60,
+    backgroundColor: "#fff",
+    borderTopWidth: 1,
+    borderTopColor: "#E5E7EB",
+    flexDirection: "row",
+    justifyContent: "space-around",
+    alignItems: "center",
   },
 });

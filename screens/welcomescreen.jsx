@@ -16,7 +16,7 @@ export default function WelcomeScreen({navigation}) {
       {/* Header */}
       <View style={styles.header}>
         <Image
-          source={require('../assets/hero.png')}
+          source={require('../assets/5686541.png')}
           style={styles.logoIcon}
         />
         <Text style={styles.logoText}>Hope Connect</Text>
@@ -25,7 +25,7 @@ export default function WelcomeScreen({navigation}) {
       {/* Illustration Card */}
       <View style={styles.imageCard}>
         <Image
-          source={require('../assets/hero.png')}
+          source={require('../assets/un-child-rights.jpg')}
           style={styles.heroImage}
         />
       </View>
@@ -51,7 +51,7 @@ export default function WelcomeScreen({navigation}) {
       {/* Get Started Button */}
     <TouchableOpacity
   style={styles.button}
-  onPress={() => navigation.navigate("SignUp")}
+  onPress={() => navigation.navigate("Home")}
 >
   <Text style={styles.buttonText}>Get Started</Text>
 </TouchableOpacity>
@@ -60,7 +60,9 @@ export default function WelcomeScreen({navigation}) {
       {/* Login */}
       <Text style={styles.loginText}>
         Already have an account?{' '}
+        <TouchableOpacity onPress={() => navigation.navigate("Login")}>
         <Text style={styles.loginLink}>Log in</Text>
+        </TouchableOpacity>
       </Text>
     </View>
   );
