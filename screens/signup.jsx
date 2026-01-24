@@ -46,7 +46,7 @@ export default function SignUpScreen() {
 
     try {
       const response = await fetch(
-        "http://10.163.213.124:5000/api/volunteers/signup",
+        "http://10.23.236.125:5000/api/volunteers/signup",
         {
           method: "POST",
           headers: {

@@ -9,6 +9,11 @@ import RegisterHomeScreen from "./screens/registerhomescreen";
 import NotificationsScreen from "./screens/notificationscreen";
 import RoleSelectScreen from "./screens/roleselect";
 import LoginScreen from "./screens/loginscreen";
+import HomeProfileScreen from "./screens/homeprofilescreen";
+import DonorHubScreen from "./screens/donorhubscreen";
+import DonationHistoryScreen from "./screens/donationhistoryscreen";
+import DonateScreen from "./screens/donatescreen";
+import DonationSuccessScreen from "./screens/donationsuccessscreen";
 const Stack = createNativeStackNavigator();
 
 export default function App() {
@@ -27,6 +32,14 @@ export default function App() {
         <Stack.Screen name="Notifications" component={NotificationsScreen} />
         <Stack.Screen name="RoleSelect" component={RoleSelectScreen} />
         <Stack.Screen name="Login" component={LoginScreen} />
+        <Stack.Screen name="HomeProfile" component={HomeProfileScreen} />
+        <Stack.Screen name="DonorHub" component={DonorHubScreen} />
+        <Stack.Screen
+          name="DonationHistory"
+          component={DonationHistoryScreen}
+        />
+        <Stack.Screen name="Donate" component={DonateScreen} />
+        <Stack.Screen name="DonationSuccess" component={DonationSuccessScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

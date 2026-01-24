@@ -11,6 +11,17 @@ import { Ionicons } from "@expo/vector-icons";
 export default function LoginScreen({ navigation }) {
   const [role, setRole] = useState("Volunteer");
 
+  // 🔹 ROLE-BASED LOGIN HANDLER (FINAL)
+  const handleLogin = () => {
+    if (role === "Home") {
+      navigation.navigate("HomeProfile");
+    } else if (role === "Donor") {
+      navigation.navigate("DonorHub");
+    } else {
+      navigation.navigate("Home"); // Volunteer
+    }
+  };
+
   return (
     <View style={styles.container}>
       {/* Header */}
@@ -84,8 +95,7 @@ export default function LoginScreen({ navigation }) {
       </TouchableOpacity>
 
       {/* Login */}
-      <TouchableOpacity style={styles.loginBtn}
-        onPress={() => navigation.navigate("Home")}>
+      <TouchableOpacity style={styles.loginBtn} onPress={handleLogin}>
         <Text style={styles.loginText}>Login</Text>
       </TouchableOpacity>
     </View>
