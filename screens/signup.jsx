@@ -14,12 +14,13 @@ import { Ionicons } from "@expo/vector-icons";
 export default function SignUpScreen() {
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
-  const [availability, setAvailability] = useState("");
-  const [selectedSkills, setSelectedSkills] = useState(["Teaching"]);
+  const [availability, setAvailability] = useState("6:00-12:00");
+  const [skills, setSkills] = useState(["Teaching"]);
   const [loading, setLoading] = useState(false);
 
-  const skills = [
+  const skillOptions = [
     "Teaching",
     "Mentoring",
     "Arts & Crafts",
@@ -29,15 +30,15 @@ export default function SignUpScreen() {
   ];
 
   const toggleSkill = (skill) => {
-    if (selectedSkills.includes(skill)) {
-      setSelectedSkills(selectedSkills.filter((s) => s !== skill));
+    if (skills.includes(skill)) {
+      setSkills(skills.filter((s) => s !== skill));
     } else {
-      setSelectedSkills([...selectedSkills, skill]);
+      setSkills([...skills, skill]);
     }
   };
 
   const handleSignUp = async () => {
-    if (!fullName || !email || !password) {
+    if (!fullName || !email || !password || !phone) {
       Alert.alert("Error", "Please fill all required fields");
       return;
     }
@@ -49,15 +50,13 @@ export default function SignUpScreen() {
         "http://10.23.236.125:5000/api/volunteers/signup",
         {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             fullName,
             email,
             password,
-            skills: selectedSkills,
             availability,
+            skills,
           }),
         }
       );
@@ -66,16 +65,10 @@ export default function SignUpScreen() {
 
       if (!response.ok) {
         Alert.alert("Error", data.message || "Signup failed");
-        setLoading(false);
         return;
       }
 
       Alert.alert("Success", "Volunteer account created successfully!");
-      setFullName("");
-      setEmail("");
-      setPassword("");
-      setAvailability("");
-      setSelectedSkills([]);
     } catch (error) {
       Alert.alert("Error", "Server not reachable");
     } finally {
@@ -87,8 +80,8 @@ export default function SignUpScreen() {
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
       {/* Header */}
       <View style={styles.header}>
-        <Ionicons name="arrow-back" size={24} color="#000" />
-        <Text style={styles.headerTitle}>Sign Up</Text>
+        <Ionicons name="arrow-back" size={24} />
+        <Text style={styles.headerTitle}>Volunteer Registration</Text>
         <View style={{ width: 24 }} />
       </View>
 
@@ -96,17 +89,15 @@ export default function SignUpScreen() {
       <Image source={require("../assets/hands.jpg")} style={styles.image} />
 
       {/* Title */}
-      <Text style={styles.title}>Become a Hope{`\n`}Connector</Text>
+      <Text style={styles.title}>Become a Hope Connector</Text>
       <Text style={styles.subtitle}>
-        Join our trusted community and make a real difference in a child's life.
+        Join our trusted community and make a real difference in a child's life today.
       </Text>
 
       {/* Verified Box */}
       <View style={styles.verifiedBox}>
-        <View style={styles.verifiedIcon}>
-          <Ionicons name="shield-checkmark" size={20} color="#7C3AED" />
-        </View>
-        <View>
+        <Ionicons name="shield-checkmark" size={20} color="#7C3AED" />
+        <View style={{ marginLeft: 10 }}>
           <Text style={styles.verifiedTitle}>Verified & Secure Process</Text>
           <Text style={styles.verifiedText}>
             We background check all volunteers for safety.
@@ -129,45 +120,38 @@ export default function SignUpScreen() {
         <TextInput
           style={styles.flex}
           placeholder="jane@example.com"
-          keyboardType="email-address"
           value={email}
           onChangeText={setEmail}
         />
         <Ionicons name="mail-outline" size={20} color="#9CA3AF" />
       </View>
 
-      {/* Password */}
-      <Text style={styles.label}>Password</Text>
+      {/* Phone */}
+      <Text style={styles.label}>Phone Number</Text>
       <View style={styles.inputWithIcon}>
         <TextInput
           style={styles.flex}
-          placeholder="Min. 8 characters"
-          secureTextEntry
-          value={password}
-          onChangeText={setPassword}
+          placeholder="+91 55500 0000"
+          keyboardType="phone-pad"
+          value={phone}
+          onChangeText={setPhone}
         />
-        <Ionicons name="eye-off-outline" size={20} color="#9CA3AF" />
+        <Ionicons name="call-outline" size={20} color="#9CA3AF" />
       </View>
 
-      {/* Skills */}
+      {/* ✅ SKILLS (NEW – ONLY ADDITION) */}
       <Text style={styles.label}>What can you bring?</Text>
-      <View style={styles.skillContainer}>
-        {skills.map((skill) => {
-          const active = selectedSkills.includes(skill);
+      <View style={styles.skillsRow}>
+        {skillOptions.map((skill) => {
+          const active = skills.includes(skill);
           return (
             <TouchableOpacity
               key={skill}
-              style={[
-                styles.skillChip,
-                active && styles.skillChipActive,
-              ]}
+              style={[styles.skillChip, active && styles.skillActive]}
               onPress={() => toggleSkill(skill)}
             >
               <Text
-                style={[
-                  styles.skillText,
-                  active && styles.skillTextActive,
-                ]}
+                style={[styles.skillText, active && styles.skillTextActive]}
               >
                 {skill}
               </Text>
@@ -184,29 +168,46 @@ export default function SignUpScreen() {
         })}
       </View>
 
+      {/* Password */}
+      <Text style={styles.label}>Password</Text>
+      <View style={styles.inputWithIcon}>
+        <TextInput
+          style={styles.flex}
+          placeholder="Min. 8 characters"
+          secureTextEntry
+          value={password}
+          onChangeText={setPassword}
+        />
+        <Ionicons name="eye-off-outline" size={20} color="#9CA3AF" />
+      </View>
+
       {/* Availability */}
       <Text style={styles.label}>When are you free?</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="e.g. Weekends / Evenings"
-        value={availability}
-        onChangeText={setAvailability}
-      />
+      <View style={styles.timeRow}>
+        {["6:00-12:00", "12:00-18:00", "18:00-24:00"].map((time) => {
+          const active = availability === time;
+          return (
+            <TouchableOpacity
+              key={time}
+              style={[styles.timeChip, active && styles.timeActive]}
+              onPress={() => setAvailability(time)}
+            >
+              <Text style={[styles.timeText, active && styles.timeTextActive]}>
+                {time}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
+      </View>
 
       {/* Security */}
       <View style={styles.security}>
         <Ionicons name="lock-closed" size={16} color="#6B7280" />
-        <Text style={styles.securityText}>
-          Your data is encrypted securely.
-        </Text>
+        <Text style={styles.securityText}>Your data is encrypted securely.</Text>
       </View>
 
       {/* Button */}
-      <TouchableOpacity
-        style={styles.button}
-        onPress={handleSignUp}
-        disabled={loading}
-      >
+      <TouchableOpacity style={styles.button} onPress={handleSignUp}>
         <Text style={styles.buttonText}>
           {loading ? "Creating..." : "Create Volunteer Account"}
         </Text>
@@ -230,31 +231,37 @@ const styles = StyleSheet.create({
     backgroundColor: "#F9FAFB",
     paddingHorizontal: 20,
   },
+
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
     marginVertical: 15,
   },
+
   headerTitle: {
     fontSize: 18,
     fontWeight: "700",
   },
+
   image: {
     width: "100%",
     height: 170,
     borderRadius: 18,
     marginBottom: 20,
   },
+
   title: {
-    fontSize: 28,
+    fontSize: 26,
     fontWeight: "800",
-    marginBottom: 10,
+    marginBottom: 8,
   },
+
   subtitle: {
-    fontSize: 16,
+    fontSize: 14,
     color: "#6B7280",
     marginBottom: 20,
   },
+
   verifiedBox: {
     flexDirection: "row",
     backgroundColor: "#F3E8FF",
@@ -262,24 +269,16 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     marginBottom: 24,
   },
-  verifiedIcon: {
-    marginRight: 12,
-    backgroundColor: "#E9D5FF",
-    padding: 8,
-    borderRadius: 20,
-  },
-  verifiedTitle: {
-    fontWeight: "700",
-  },
-  verifiedText: {
-    fontSize: 13,
-    color: "#6B7280",
-  },
+
+  verifiedTitle: { fontWeight: "700" },
+  verifiedText: { fontSize: 13, color: "#6B7280" },
+
   label: {
     fontWeight: "600",
     marginTop: 12,
     marginBottom: 6,
   },
+
   input: {
     backgroundColor: "#fff",
     borderRadius: 12,
@@ -287,6 +286,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#E5E7EB",
   },
+
   inputWithIcon: {
     flexDirection: "row",
     alignItems: "center",
@@ -296,45 +296,83 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#E5E7EB",
   },
-  flex: {
-    flex: 1,
-  },
-  skillContainer: {
+
+  flex: { flex: 1 },
+
+  /* Skills */
+  skillsRow: {
     flexDirection: "row",
     flexWrap: "wrap",
     marginTop: 6,
   },
+
   skillChip: {
     paddingHorizontal: 14,
     paddingVertical: 10,
     borderRadius: 20,
     borderWidth: 1,
     borderColor: "#E5E7EB",
+    backgroundColor: "#fff",
     marginRight: 10,
     marginBottom: 10,
-    backgroundColor: "#fff",
     flexDirection: "row",
     alignItems: "center",
   },
-  skillChipActive: {
+
+  skillActive: {
     backgroundColor: PURPLE,
     borderColor: PURPLE,
   },
+
   skillText: {
     fontWeight: "600",
+    fontSize: 12,
   },
+
   skillTextActive: {
     color: "#fff",
   },
+
+  timeRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginTop: 6,
+  },
+
+  timeChip: {
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: "#E5E7EB",
+    backgroundColor: "#fff",
+  },
+
+  timeActive: {
+    backgroundColor: PURPLE,
+    borderColor: PURPLE,
+  },
+
+  timeText: {
+    fontWeight: "600",
+    fontSize: 12,
+  },
+
+  timeTextActive: {
+    color: "#fff",
+  },
+
   security: {
     flexDirection: "row",
     justifyContent: "center",
     marginVertical: 20,
   },
+
   securityText: {
     marginLeft: 8,
     color: "#6B7280",
   },
+
   button: {
     backgroundColor: PURPLE,
     padding: 18,
@@ -342,17 +380,20 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 20,
   },
+
   buttonText: {
     color: "#fff",
     fontWeight: "700",
     fontSize: 16,
   },
+
   terms: {
     fontSize: 13,
     color: "#6B7280",
     textAlign: "center",
     marginBottom: 40,
   },
+
   link: {
     color: PURPLE,
     fontWeight: "600",

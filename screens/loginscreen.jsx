@@ -11,14 +11,14 @@ import { Ionicons } from "@expo/vector-icons";
 export default function LoginScreen({ navigation }) {
   const [role, setRole] = useState("Volunteer");
 
-  // 🔹 ROLE-BASED LOGIN HANDLER (FINAL)
+  // ✅ ROLE-BASED LOGIN HANDLER (UPDATED)
   const handleLogin = () => {
     if (role === "Home") {
       navigation.navigate("HomeProfile");
     } else if (role === "Donor") {
       navigation.navigate("DonorHub");
     } else {
-      navigation.navigate("Home"); // Volunteer
+      navigation.navigate("VolunteerHub"); // 👈 FIXED
     }
   };
 

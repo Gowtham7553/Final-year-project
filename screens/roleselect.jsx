@@ -37,20 +37,21 @@ export default function RoleSelectScreen({ navigation }) {
             Mentor, donate, or offer your professional skills.
           </Text>
         </View>
-        <View style={[styles.iconBox, { backgroundColor: "#E0E7FF" }]}>
+        <View style={[styles.iconBox, styles.volunteerBg]}>
           <Ionicons name="hand-left" size={22} color="#2563EB" />
         </View>
       </TouchableOpacity>
 
       {/* Donor */}
-      <TouchableOpacity style={styles.card}>
+      <TouchableOpacity style={styles.card}
+        onPress={() => navigation.navigate("DonationRegistration")}>
         <View>
           <Text style={styles.cardTitle}>Donor</Text>
           <Text style={styles.cardDesc}>
             Make a financial contribution to fund critical needs.
           </Text>
         </View>
-        <View style={[styles.iconBox, { backgroundColor: "#DCFCE7" }]}>
+        <View style={[styles.iconBox, styles.donorBg]}>
           <Ionicons name="logo-usd" size={22} color="#16A34A" />
         </View>
       </TouchableOpacity>
@@ -66,10 +67,23 @@ export default function RoleSelectScreen({ navigation }) {
             Register your organization to receive support.
           </Text>
         </View>
-        <View style={[styles.iconBox, { backgroundColor: "#FFEDD5" }]}>
+        <View style={[styles.iconBox, styles.homeBg]}>
           <Ionicons name="home" size={22} color="#EA580C" />
         </View>
       </TouchableOpacity>
+
+      {/* Footer */}
+      <View style={styles.footer}>
+        <Text style={styles.footerText}>
+          Already have an account?{" "}
+          <Text
+            style={styles.login}
+            onPress={() => navigation.navigate("Login")}
+          >
+            Log in
+          </Text>
+        </Text>
+      </View>
     </View>
   );
 }
@@ -77,7 +91,7 @@ export default function RoleSelectScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F9FAFB",
+    backgroundColor: "#F7F5FF", // 🔥 light purple tint
     paddingHorizontal: 20,
     paddingTop: 16,
   },
@@ -86,7 +100,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    marginBottom: 20,
+    marginBottom: 24,
   },
 
   headerTitle: {
@@ -95,15 +109,17 @@ const styles = StyleSheet.create({
   },
 
   title: {
-    fontSize: 24,
+    fontSize: 26,
     fontWeight: "800",
-    marginBottom: 8,
+    marginBottom: 10,
+    color: "#111827",
   },
 
   subtitle: {
     fontSize: 14,
     color: "#6B7280",
-    marginBottom: 24,
+    marginBottom: 28,
+    lineHeight: 20,
   },
 
   card: {
@@ -114,26 +130,63 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     marginBottom: 16,
-    elevation: 1,
+
+    // 🔥 soft shadow (matches image)
+    shadowColor: "#000",
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 },
   },
 
   cardTitle: {
     fontSize: 16,
     fontWeight: "700",
-    marginBottom: 4,
+    marginBottom: 6,
   },
 
   cardDesc: {
     fontSize: 13,
     color: "#6B7280",
     maxWidth: 220,
+    lineHeight: 18,
   },
 
   iconBox: {
-    width: 44,
-    height: 44,
-    borderRadius: 12,
+    width: 48,
+    height: 48,
+    borderRadius: 14,
     alignItems: "center",
     justifyContent: "center",
+  },
+
+  volunteerBg: {
+    backgroundColor: "#E0E7FF",
+  },
+
+  donorBg: {
+    backgroundColor: "#DCFCE7",
+  },
+
+  homeBg: {
+    backgroundColor: "#FFEDD5",
+  },
+
+  footer: {
+    marginTop: "24",
+    paddingVertical: 20,
+    alignItems: "center",
+  },
+
+  footerText: {
+    fontSize: 13,
+    color: "#6B7280",
+  },
+
+  login: {
+    color: "#7C3AED",
+    fontWeight: "700",
+    marginTop:10,
+    marginBottom: 20,
+    elevation: 6,
   },
 });

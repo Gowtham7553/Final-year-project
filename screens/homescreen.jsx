@@ -22,7 +22,9 @@ export default function HomeScreen({ navigation }) {
             />
             <Text style={styles.logoText}>Hope Connect</Text>
           </View>
-          <TouchableOpacity onPress={() => navigation.navigate("Notifications")}>
+          <TouchableOpacity
+            onPress={() => navigation.navigate("Notifications")}
+          >
             <Ionicons name="notifications-outline" size={22} />
           </TouchableOpacity>
         </View>
@@ -105,51 +107,15 @@ export default function HomeScreen({ navigation }) {
         </View>
 
         {/* Select Role */}
-        <TouchableOpacity style={styles.selectButton}
-          onPress={() => navigation.navigate("RoleSelect")}>
-          <Text style={styles.selectButtonText}>Select Role</Text>
+        <TouchableOpacity
+          style={styles.selectButton}
+          onPress={() => navigation.navigate("RoleSelect")}
+        >
+          <Text style={styles.selectButtonText}>Select Role </Text>
         </TouchableOpacity>
 
-        {/* Impact Stories */}
-        <View style={styles.storyHeader}>
-          <Text style={styles.sectionTitle}>Impact Stories</Text>
-          <Text style={styles.viewAll}>View all</Text>
-        </View>
-
-        <View style={styles.storyRow}>
-          <View style={styles.storyCard}>
-            <Image
-              source={require("../assets/teacher.jpg")}
-              style={styles.storyImage}
-            />
-            <Text style={styles.storyTag}>Success Story</Text>
-            <Text style={styles.storyTitle}>
-              How Sarah found her passion in teaching
-            </Text>
-          </View>
-
-          <View style={styles.storyCard}>
-            <Image
-              source={require("../assets/renovating.jpg")}
-              style={styles.storyImage}
-            />
-            <Text style={styles.storyTag}>Community</Text>
-            <Text style={styles.storyTitle}>
-              Renovating the Downtown Shelter
-            </Text>
-          </View>
-        </View>
-
-        <View style={{ height: 80 }} />
+        <View style={{ height: 30 }} />
       </ScrollView>
-
-      {/* Bottom Navigation */}
-      <View style={styles.bottomNav}>
-        <Ionicons name="home" size={22} color="#7C3AED" />
-        <Ionicons name="newspaper-outline" size={22} color="#9CA3AF" />
-        <Ionicons name="heart-outline" size={22} color="#9CA3AF" />
-        <Ionicons name="person-outline" size={22} color="#9CA3AF" />
-      </View>
     </View>
   );
 }
@@ -278,15 +244,17 @@ const styles = StyleSheet.create({
   },
 
   roleButton: {
-    backgroundColor: PURPLE,
-    padding: 12,
-    borderRadius: 20,
-    alignItems: "center",
-  },
+  backgroundColor: PURPLE,
+  paddingHorizontal: 16,
+  paddingVertical: 8,
+  borderRadius: 16,
+  alignSelf: "flex-end",   // 🔥 moves button to right
+},
 
   roleButtonText: {
     color: "#fff",
     fontWeight: "700",
+    fontSize: 12,
   },
 
   selectButton: {
@@ -301,61 +269,5 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontWeight: "700",
     fontSize: 16,
-  },
-
-  storyHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginVertical: 16,
-  },
-
-  viewAll: {
-    color: PURPLE,
-    fontWeight: "600",
-  },
-
-  storyRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-  },
-
-  storyCard: {
-    width: "48%",
-    backgroundColor: "#fff",
-    borderRadius: 14,
-    padding: 10,
-  },
-
-  storyImage: {
-    width: "100%",
-    height: 100,
-    borderRadius: 10,
-    marginBottom: 6,
-  },
-
-  storyTag: {
-    fontSize: 12,
-    color: PURPLE,
-    fontWeight: "600",
-  },
-
-  storyTitle: {
-    fontWeight: "700",
-    fontSize: 14,
-  },
-
-  bottomNav: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    height: 60,
-    backgroundColor: "#fff",
-    borderTopWidth: 1,
-    borderTopColor: "#E5E7EB",
-    flexDirection: "row",
-    justifyContent: "space-around",
-    alignItems: "center",
   },
 });

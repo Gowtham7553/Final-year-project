@@ -3,13 +3,13 @@ import {
   View,
   Text,
   StyleSheet,
-  ScrollView,
   TouchableOpacity,
+  ScrollView,
   ImageBackground,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 
-export default function DonorHubScreen({ navigation }) {
+export default function VolunteerHubScreen({ navigation }) {
   return (
     <View style={styles.container}>
       <ScrollView showsVerticalScrollIndicator={false}>
@@ -19,98 +19,105 @@ export default function DonorHubScreen({ navigation }) {
             <Ionicons name="arrow-back" size={22} />
           </TouchableOpacity>
 
-          <Text style={styles.headerTitle}>Donor Hub</Text>
+          <Text style={styles.headerTitle}>Volunteer Hub</Text>
 
-          {/* 🔴 Red dot REMOVED */}
-          <Ionicons name="notifications-outline" size={22} />
+          <TouchableOpacity>
+            <Ionicons name="notifications-outline" size={22} />
+            <View style={styles} />
+          </TouchableOpacity>
         </View>
 
         {/* Hero with Image Background */}
         <ImageBackground
-          source={require("../assets/donorhero.jpg")}
+          source={require("../assets/childrens.jpg")} // ✅ SAME IMAGE STYLE AS UPLOADED
           style={styles.heroCard}
           imageStyle={{ borderRadius: 18 }}
         >
           <View style={styles.heroOverlay}>
             <Text style={styles.heroTag}>HOPE CONNECT</Text>
-            <Text style={styles.heroTitle}>Welcome, Changemaker</Text>
-            <Text style={styles.heroDesc}>
-              Your journey to making a difference starts here.
-            </Text>
+            <Text style={styles.heroTitle}>Welcome, Hero</Text>
+            <Text style={styles.heroSub}>Ready to change lives?</Text>
           </View>
         </ImageBackground>
 
         {/* Quick Actions */}
-        <Text style={styles.sectionTitle}>Quick Actions</Text>
+        <Text style={styles.section}>Quick Actions</Text>
 
-        {/* Make a Donation */}
-        <View style={styles.donateCard}>
-          <View style={styles.donateLeft}>
+        {/* Ongoing Tasks */}
+        <View style={styles.actionCard}>
+          <View style={styles.actionLeft}>
             <View style={styles.iconCircle}>
-              <Ionicons name="hand-left" size={20} color="#7C3AED" />
+              <Ionicons
+                name="clipboard-outline"
+                size={20}
+                color="#7C3AED"
+              />
             </View>
             <View>
-              <Text style={styles.donateTitle}>Make a Donation</Text>
-              <Text style={styles.donateDesc}>
-                Securely support a child 
+              <Text style={styles.actionTitle}>Ongoing Tasks</Text>
+              <Text style={styles.actionDesc}>
+                You have 3 tasks pending review
               </Text>
             </View>
           </View>
 
-          <TouchableOpacity
-            style={styles.donateBtn}
-            onPress={() => navigation.navigate("Donate")}
-          >
-            <Text style={styles.donateBtnText}>Donate</Text>
+          <TouchableOpacity style={styles.actionBtn}
+            onPress={() => navigation.navigate("Tasks")}>
+            <Text style={styles.actionBtnText}>View Tasks</Text>
           </TouchableOpacity>
         </View>
 
-        {/* Grid */}
+        {/* Grid Actions */}
         <View style={styles.grid}>
-          <TouchableOpacity style={styles.gridCard}
-            onPress={() => navigation.navigate("ItemDonation")}>
-            <View style={[styles.gridIcon, { backgroundColor: "#EDE9FE" }]}>
-              <Ionicons name="cash-outline" size={22} color="#7C3AED" />
-            </View>
-            <Text style={styles.gridTitle}>Donate Items</Text>
-            <Text style={styles.gridDesc}>Give daily needs & supplies</Text>
+          <TouchableOpacity style={styles.gridCard}>
+            <Ionicons name="heart" size={22} color="#7C3AED" />
+            <Text style={styles.gridTitle}>Donate if you can!</Text>
+            <Text style={styles.gridDesc}>
+              Support children’s homes directly
+            </Text>
           </TouchableOpacity>
 
-          <TouchableOpacity
-            style={styles.gridCard}
-            onPress={() => navigation.navigate("DonationHistory")}
-          >
-            <View style={[styles.gridIcon, { backgroundColor: "#FEF3C7" }]}>
-              <Ionicons name="time-outline" size={22} color="#D97706" />
-            </View>
-            <Text style={styles.gridTitle}>Donation History</Text>
-            <Text style={styles.gridDesc}>Track your past contributions</Text>
+          <TouchableOpacity style={styles.gridCard}
+          onPress={() => navigation.navigate("TasksHistory")}>
+            <Ionicons name="time-outline" size={22} color="#7C3AED" />
+            <Text style={styles.gridTitle}>Tasks History</Text>
+            <Text style={styles.gridDesc}>
+              Review your completed help
+            </Text>
           </TouchableOpacity>
         </View>
 
         {/* Profile */}
         <TouchableOpacity style={styles.profileCard}
-          onPress={() => navigation.navigate("DonorProfile")}>
+          onPress={() => navigation.navigate("VolunteerProfile")}>
           <View style={styles.profileLeft}>
             <View style={styles.iconCircle}>
-              <Ionicons name="person-outline" size={20} color="#7C3AED" />
+              <Ionicons
+                name="person-outline"
+                size={20}
+                color="#7C3AED"
+              />
             </View>
-            <View>
-              <Text style={styles.profileTitle}>My Profile</Text>
-              <Text style={styles.profileDesc}>
-                Manage your personal details
-              </Text>
-            </View>
+            <Text style={styles.profileText}>My Profile</Text>
           </View>
-          <Ionicons name="chevron-forward" size={18} color="#9CA3AF" />
+          <Ionicons
+            name="chevron-forward"
+            size={18}
+            color="#9CA3AF"
+          />
         </TouchableOpacity>
 
-        {/* Info Box */}
-        <View style={styles.infoBox}>
-          <Ionicons name="bulb-outline" size={20} color="#7C3AED" />
-          <Text style={styles.infoText}>
-            Did you know? Just <Text style={styles.bold}>₹500</Text> provides a
-            week of nutritious meals for a child in our partner homes.
+        {/* Volunteer Tip */}
+        <View style={styles.tipBox}>
+          <Ionicons
+            name="bulb-outline"
+            size={20}
+            color="#7C3AED"
+          />
+          <Text style={styles.tipText}>
+            Consistent involvement (even just{" "}
+            <Text style={styles.bold}>2 hours</Text> a week) builds
+            stronger bonds with the children.
           </Text>
         </View>
 
@@ -124,12 +131,11 @@ export default function DonorHubScreen({ navigation }) {
           © 2024 Hope Connect. Making impact visible.
         </Text>
 
-        <View style={{ height: 80 }} />
+        <View style={{ height: 30 }} />
       </ScrollView>
-
     </View>
   );
-};
+}
 
 const PURPLE = "#7C3AED";
 
@@ -152,8 +158,19 @@ const styles = StyleSheet.create({
     fontWeight: "700",
   },
 
+  dot: {
+    position: "absolute",
+    right: 2,
+    top: 2,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: "#EF4444",
+  },
+
+  /* HERO */
   heroCard: {
-    height: 180,
+    height: 170,
     borderRadius: 18,
     marginBottom: 20,
     overflow: "hidden",
@@ -161,7 +178,7 @@ const styles = StyleSheet.create({
 
   heroOverlay: {
     flex: 1,
-    padding: 18,
+    padding: 20,
     justifyContent: "flex-end",
     backgroundColor: "rgba(0,0,0,0.45)",
   },
@@ -178,18 +195,18 @@ const styles = StyleSheet.create({
     marginTop: 6,
   },
 
-  heroDesc: {
+  heroSub: {
     color: "#E5E7EB",
     marginTop: 4,
   },
 
-  sectionTitle: {
+  section: {
     fontSize: 18,
     fontWeight: "800",
     marginBottom: 12,
   },
 
-  donateCard: {
+  actionCard: {
     backgroundColor: "#fff",
     borderRadius: 16,
     padding: 14,
@@ -199,40 +216,41 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
 
-  donateLeft: {
+  actionLeft: {
     flexDirection: "row",
     alignItems: "center",
   },
 
   iconCircle: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     backgroundColor: "#EDE9FE",
     alignItems: "center",
     justifyContent: "center",
-    marginRight: 12,
+    marginRight: 10,
   },
 
-  donateTitle: {
+  actionTitle: {
     fontWeight: "700",
   },
 
-  donateDesc: {
+  actionDesc: {
     fontSize: 12,
     color: "#6B7280",
   },
 
-  donateBtn: {
+  actionBtn: {
     backgroundColor: PURPLE,
-    paddingHorizontal: 16,
+    paddingHorizontal: 14,
     paddingVertical: 8,
-    borderRadius: 20,
+    borderRadius: 16,
   },
 
-  donateBtnText: {
+  actionBtnText: {
     color: "#fff",
     fontWeight: "700",
+    fontSize: 12,
   },
 
   grid: {
@@ -248,22 +266,15 @@ const styles = StyleSheet.create({
     padding: 14,
   },
 
-  gridIcon: {
-    width: 38,
-    height: 38,
-    borderRadius: 12,
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 8,
-  },
-
   gridTitle: {
     fontWeight: "700",
+    marginTop: 10,
   },
 
   gridDesc: {
     fontSize: 12,
     color: "#6B7280",
+    marginTop: 4,
   },
 
   profileCard: {
@@ -281,28 +292,25 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
 
-  profileTitle: {
+  profileText: {
+    marginLeft: 10,
     fontWeight: "700",
   },
 
-  profileDesc: {
-    fontSize: 12,
-    color: "#6B7280",
-  },
-
-  infoBox: {
+  tipBox: {
     backgroundColor: "#F3E8FF",
     borderRadius: 16,
     padding: 14,
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 16,
+    marginBottom: 20,
   },
 
-  infoText: {
+  tipText: {
     marginLeft: 10,
     color: "#4C1D95",
     flex: 1,
+    fontSize: 13,
   },
 
   bold: {
@@ -326,6 +334,4 @@ const styles = StyleSheet.create({
     color: "#9CA3AF",
     textAlign: "center",
   },
-
-  
 });

@@ -10,9 +10,10 @@ import {
 
 const { width } = Dimensions.get('window');
 
-export default function WelcomeScreen({navigation}) {
+export default function WelcomeScreen({ navigation }) {
   return (
     <View style={styles.container}>
+      
       {/* Header */}
       <View style={styles.header}>
         <Image
@@ -41,29 +42,24 @@ export default function WelcomeScreen({navigation}) {
         Whether you are a volunteer or a shelter, your help starts here.
       </Text>
 
-      {/* Pagination Dots */}
-      <View style={styles.dots}>
-        <View style={styles.activeDot} />
-        <View style={styles.dot} />
-        <View style={styles.dot} />
-      </View>
+
 
       {/* Get Started Button */}
-    <TouchableOpacity
-  style={styles.button}
-  onPress={() => navigation.navigate("Home")}
->
-  <Text style={styles.buttonText}>Get Started</Text>
-</TouchableOpacity>
-
+      <TouchableOpacity
+        style={styles.button}
+        onPress={() => navigation.navigate('Home')}
+      >
+        <Text style={styles.buttonText}>Get Started</Text>
+      </TouchableOpacity>
 
       {/* Login */}
       <Text style={styles.loginText}>
         Already have an account?{' '}
-        <TouchableOpacity onPress={() => navigation.navigate("Login")}>
-        <Text style={styles.loginLink}>Log in</Text>
+        <TouchableOpacity onPress={() => navigation.navigate('Login')}>
+          <Text style={styles.loginLink}>Log in</Text>
         </TouchableOpacity>
       </Text>
+
     </View>
   );
 }
@@ -162,6 +158,7 @@ const styles = StyleSheet.create({
     borderRadius: 30,
     justifyContent: 'center',
     alignItems: 'center',
+    marginTop: 20,
     marginBottom: 18,
     elevation: 6,
   },
