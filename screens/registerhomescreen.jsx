@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -6,10 +6,70 @@ import {
   TextInput,
   TouchableOpacity,
   ScrollView,
+  Alert,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 
 export default function RegisterHomeScreen({ navigation }) {
+  // 🔹 STATES
+  const [homeName, setHomeName] = useState("");
+  const [registrationNumber, setRegistrationNumber] = useState("");
+  const [repName, setRepName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [email, setEmail] = useState("");
+  const [street, setStreet] = useState("");
+  const [city, setCity] = useState("");
+  const [zip, setZip] = useState("");
+  const [capacity, setCapacity] = useState("");
+  const [needsDesc, setNeedsDesc] = useState("");
+
+  const needsTags = ["Food", "Medical", "Education", "Clothing"];
+
+  // 🔹 SUBMIT HANDLER
+  const handleSubmit = async () => {
+    if (!homeName || !registrationNumber || !repName || !phone || !email) {
+      Alert.alert("Error", "Please fill all required fields");
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        "http://10.79.215.124:5000/api/homes/register",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            homeName,
+            registrationNumber,
+            representativeName: repName,
+            phone,
+            email,
+            address: {
+              street,
+              city,
+              zipCode: zip,
+            },
+            capacity: Number(capacity),
+            needsDescription: needsDesc,
+            needsTags,
+          }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        Alert.alert("Error", data.message || "Registration failed");
+        return;
+      }
+
+      Alert.alert("Success", "Home registered successfully!");
+      navigation.goBack();
+    } catch (error) {
+      Alert.alert("Error", "Server not reachable");
+    }
+  };
+
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
       {/* Header */}
@@ -21,41 +81,50 @@ export default function RegisterHomeScreen({ navigation }) {
         <View style={{ width: 24 }} />
       </View>
 
-      {/* Intro */}
       <Text style={styles.title}>Join our network</Text>
       <Text style={styles.subtitle}>
-        Register your children's home to receive support, supplies, and connect
-        with verified volunteers.
+        Register your children's home to receive support and volunteers.
       </Text>
 
-      {/* Organization Details */}
+      {/* Organization */}
       <Text style={styles.section}>Organization Details</Text>
 
       <Text style={styles.label}>Home Name</Text>
       <TextInput
         style={styles.input}
-        placeholder="e.g. Sunshine Orphanage"
+        placeholder="Sunshine Orphanage"
+        value={homeName}
+        onChangeText={setHomeName}
       />
 
       <Text style={styles.label}>Registration Number</Text>
       <TextInput
         style={styles.input}
-        placeholder="Govt. Issued ID"
+        placeholder="Govt ID"
+        value={registrationNumber}
+        onChangeText={setRegistrationNumber}
       />
 
-      {/* Contact Information */}
+      {/* Contact */}
       <Text style={styles.section}>Contact Information</Text>
 
       <Text style={styles.label}>Representative Name</Text>
-      <TextInput style={styles.input} placeholder="Full Name" />
+      <TextInput
+        style={styles.input}
+        placeholder="Full Name"
+        value={repName}
+        onChangeText={setRepName}
+      />
 
       <Text style={styles.label}>Phone Number</Text>
       <View style={styles.inputWithIcon}>
         <Ionicons name="call-outline" size={18} color="#9CA3AF" />
         <TextInput
           style={styles.flex}
-          placeholder="(555) 000-0000"
+          placeholder="9876543210"
           keyboardType="phone-pad"
+          value={phone}
+          onChangeText={setPhone}
         />
       </View>
 
@@ -66,76 +135,65 @@ export default function RegisterHomeScreen({ navigation }) {
           style={styles.flex}
           placeholder="contact@example.com"
           keyboardType="email-address"
+          value={email}
+          onChangeText={setEmail}
         />
       </View>
 
-      {/* Location */}
+      {/* Address */}
       <Text style={styles.section}>Location & Capacity</Text>
-
-      <View style={styles.mapBox}>
-        <TouchableOpacity style={styles.locationButton}>
-          <Ionicons name="location-outline" size={16} color="#7C3AED" />
-          <Text style={styles.locationText}>Use Current Location</Text>
-        </TouchableOpacity>
-      </View>
 
       <Text style={styles.label}>Street Address</Text>
       <TextInput
         style={styles.input}
         placeholder="123 Hope Street"
+        value={street}
+        onChangeText={setStreet}
       />
 
       <View style={styles.row}>
         <View style={{ flex: 1, marginRight: 8 }}>
           <Text style={styles.label}>City</Text>
-          <TextInput style={styles.input} placeholder="City" />
+          <TextInput
+            style={styles.input}
+            placeholder="City"
+            value={city}
+            onChangeText={setCity}
+          />
         </View>
         <View style={{ flex: 1 }}>
           <Text style={styles.label}>Zip Code</Text>
-          <TextInput style={styles.input} placeholder="00000" />
+          <TextInput
+            style={styles.input}
+            placeholder="600001"
+            value={zip}
+            onChangeText={setZip}
+          />
         </View>
       </View>
 
-      <Text style={styles.label}>Current Capacity (Children)</Text>
+      <Text style={styles.label}>Current Capacity</Text>
       <TextInput
         style={styles.input}
         placeholder="0"
         keyboardType="numeric"
+        value={capacity}
+        onChangeText={setCapacity}
       />
 
       {/* Needs */}
       <Text style={styles.section}>Needs Assessment</Text>
 
-      <Text style={styles.label}>What are your top needs?</Text>
       <TextInput
         style={[styles.input, styles.textArea]}
-        placeholder="E.g. Educational materials for ages 5–10, winter clothing, non-perishable food..."
+        placeholder="Describe your needs"
         multiline
+        value={needsDesc}
+        onChangeText={setNeedsDesc}
       />
 
-      <View style={styles.chips}>
-        {["Food", "Medical", "Education", "Clothing"].map((item) => (
-          <View key={item} style={styles.chip}>
-            <Text style={styles.chipText}>{item}</Text>
-          </View>
-        ))}
-      </View>
-
-      {/* Document */}
-      <Text style={styles.section}>Verification Document</Text>
-
-      <TouchableOpacity style={styles.uploadBox}>
-        <Ionicons name="document-text-outline" size={28} color="#7C3AED" />
-        <Text style={styles.uploadTitle}>
-          Upload License or Registration
-        </Text>
-        <Text style={styles.uploadSub}>
-          PDF, JPG or PNG up to 5MB
-        </Text>
-      </TouchableOpacity>
-
       {/* Submit */}
-      <TouchableOpacity style={styles.submitButton}>
+      <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
         <Text style={styles.submitText}>Submit Registration</Text>
         <Ionicons name="checkmark-circle" size={18} color="#fff" />
       </TouchableOpacity>
@@ -153,42 +211,35 @@ const styles = StyleSheet.create({
     backgroundColor: "#F9FAFB",
     paddingHorizontal: 20,
   },
-
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     marginVertical: 14,
   },
-
   headerTitle: {
     fontSize: 16,
     fontWeight: "700",
   },
-
   title: {
     fontSize: 22,
     fontWeight: "800",
     marginBottom: 6,
   },
-
   subtitle: {
     color: "#6B7280",
     marginBottom: 20,
   },
-
   section: {
     fontWeight: "700",
     marginTop: 20,
     marginBottom: 10,
   },
-
   label: {
     fontSize: 13,
     fontWeight: "600",
     marginBottom: 6,
   },
-
   input: {
     backgroundColor: "#fff",
     borderRadius: 10,
@@ -197,7 +248,6 @@ const styles = StyleSheet.create({
     borderColor: "#E5E7EB",
     marginBottom: 14,
   },
-
   inputWithIcon: {
     flexDirection: "row",
     alignItems: "center",
@@ -208,89 +258,17 @@ const styles = StyleSheet.create({
     borderColor: "#E5E7EB",
     marginBottom: 14,
   },
-
   flex: {
     flex: 1,
     marginLeft: 8,
   },
-
   row: {
     flexDirection: "row",
   },
-
-  mapBox: {
-    height: 110,
-    backgroundColor: "#E5E7EB",
-    borderRadius: 12,
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: 14,
-  },
-
-  locationButton: {
-    backgroundColor: "#F3E8FF",
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 20,
-    flexDirection: "row",
-    alignItems: "center",
-  },
-
-  locationText: {
-    color: PURPLE,
-    fontWeight: "600",
-    marginLeft: 6,
-  },
-
   textArea: {
     height: 90,
     textAlignVertical: "top",
   },
-
-  chips: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    marginBottom: 10,
-  },
-
-  chip: {
-    backgroundColor: "#fff",
-    borderWidth: 1,
-    borderColor: "#E5E7EB",
-    borderRadius: 16,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    marginRight: 8,
-    marginBottom: 8,
-  },
-
-  chipText: {
-    fontSize: 12,
-    fontWeight: "600",
-  },
-
-  uploadBox: {
-    borderWidth: 1,
-    borderColor: "#C4B5FD",
-    borderStyle: "dashed",
-    borderRadius: 14,
-    padding: 20,
-    alignItems: "center",
-    backgroundColor: "#F5F3FF",
-    marginBottom: 20,
-  },
-
-  uploadTitle: {
-    fontWeight: "700",
-    marginTop: 8,
-  },
-
-  uploadSub: {
-    fontSize: 12,
-    color: "#6B7280",
-    marginTop: 4,
-  },
-
   submitButton: {
     flexDirection: "row",
     backgroundColor: PURPLE,
@@ -299,8 +277,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     gap: 8,
+    marginTop: 20,
   },
-
   submitText: {
     color: "#fff",
     fontWeight: "700",

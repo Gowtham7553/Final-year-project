@@ -6,6 +6,7 @@ import {
   TextInput,
   TouchableOpacity,
   ScrollView,
+  Alert,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 
@@ -23,6 +24,37 @@ export default function CreateAccountScreen({ navigation }) {
 
   const update = (key, value) =>
     setForm({ ...form, [key]: value });
+
+  // 🔹 REGISTER HANDLER
+  const handleRegister = async () => {
+    if (!form.name || !form.email || !form.phone || !form.password) {
+      Alert.alert("Error", "Please fill all required fields");
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        "http://10.79.215.124:5000/api/donors/register",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(form),
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        Alert.alert("Error", data.message || "Registration failed");
+        return;
+      }
+
+      Alert.alert("Success", "Account created successfully!");
+      navigation.navigate("DonorHub");
+    } catch (error) {
+      Alert.alert("Error", "Server not reachable");
+    }
+  };
 
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
@@ -70,7 +102,7 @@ export default function CreateAccountScreen({ navigation }) {
       <View style={styles.inputBox}>
         <TextInput
           style={styles.input}
-          placeholder="+1 (555) 000-0000"
+          placeholder="9876543210"
           keyboardType="phone-pad"
           value={form.phone}
           onChangeText={(v) => update("phone", v)}
@@ -95,7 +127,7 @@ export default function CreateAccountScreen({ navigation }) {
       <View style={styles.inputBox}>
         <TextInput
           style={styles.input}
-          placeholder="California"
+          placeholder="Tamil Nadu"
           value={form.state}
           onChangeText={(v) => update("state", v)}
         />
@@ -108,7 +140,7 @@ export default function CreateAccountScreen({ navigation }) {
           <Text style={styles.label}>City</Text>
           <TextInput
             style={styles.inputSingle}
-            placeholder="San Francisco"
+            placeholder="Chennai"
             value={form.city}
             onChangeText={(v) => update("city", v)}
           />
@@ -118,7 +150,7 @@ export default function CreateAccountScreen({ navigation }) {
           <Text style={styles.label}>Country</Text>
           <TextInput
             style={styles.inputSingle}
-            placeholder="USA"
+            placeholder="India"
             value={form.country}
             onChangeText={(v) => update("country", v)}
           />
@@ -138,12 +170,9 @@ export default function CreateAccountScreen({ navigation }) {
         <Ionicons name="eye-off-outline" size={18} color="#9CA3AF" />
       </View>
 
-      {/* Button */}
-      <TouchableOpacity style={styles.button}
-        onPress={()=> navigation.navigate("DonorHub")}>
-        <Text style={styles.buttonText}>
-          Register & Continue 
-        </Text>
+      {/* Register Button */}
+      <TouchableOpacity style={styles.button} onPress={handleRegister}>
+        <Text style={styles.buttonText}>Register & Continue</Text>
       </TouchableOpacity>
 
       {/* Footer */}
@@ -178,31 +207,26 @@ const styles = StyleSheet.create({
     backgroundColor: "#F9FAFB",
     paddingHorizontal: 20,
   },
-
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     marginVertical: 14,
   },
-
   headerTitle: {
     fontWeight: "700",
     fontSize: 16,
   },
-
   title: {
     fontSize: 24,
     fontWeight: "800",
     marginBottom: 20,
   },
-
   label: {
     fontWeight: "600",
     marginBottom: 6,
     marginTop: 12,
   },
-
   inputBox: {
     flexDirection: "row",
     alignItems: "center",
@@ -213,11 +237,9 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#E5E7EB",
   },
-
   input: {
     flex: 1,
   },
-
   inputSingle: {
     backgroundColor: "#fff",
     borderRadius: 12,
@@ -225,11 +247,9 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#E5E7EB",
   },
-
   row: {
     flexDirection: "row",
   },
-
   button: {
     backgroundColor: PURPLE,
     padding: 18,
@@ -237,36 +257,30 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginVertical: 24,
   },
-
   buttonText: {
     color: "#fff",
     fontWeight: "700",
     fontSize: 16,
   },
-
   secure: {
     textAlign: "center",
     color: "#6B7280",
     marginBottom: 14,
   },
-
   loginText: {
     textAlign: "center",
     color: "#6B7280",
     marginBottom: 10,
   },
-
   loginLink: {
     color: PURPLE,
     fontWeight: "700",
   },
-
   terms: {
     fontSize: 12,
     color: "#9CA3AF",
     textAlign: "center",
   },
-
   link: {
     color: PURPLE,
     fontWeight: "600",

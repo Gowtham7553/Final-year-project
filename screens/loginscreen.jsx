@@ -5,20 +5,68 @@ import {
   StyleSheet,
   TextInput,
   TouchableOpacity,
+  Alert,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 
 export default function LoginScreen({ navigation }) {
   const [role, setRole] = useState("Volunteer");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  // ✅ ROLE-BASED LOGIN HANDLER (UPDATED)
-  const handleLogin = () => {
-    if (role === "Home") {
-      navigation.navigate("HomeProfile");
-    } else if (role === "Donor") {
-      navigation.navigate("DonorHub");
-    } else {
-      navigation.navigate("VolunteerHub"); // 👈 FIXED
+  // 🔐 AUTH + AUTHORIZATION LOGIN
+  const handleLogin = async () => {
+    if (!email || !password) {
+      Alert.alert("Error", "Please enter email and password");
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const response = await fetch(
+        "http://10.79.215.124:5000/api/auth/login",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email,
+            password,
+            role,
+          }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        Alert.alert("Login Failed", data.message);
+        setLoading(false);
+        return;
+      }
+
+      // ✅ ROLE BASED NAVIGATION (AUTHORIZATION)
+      if (role === "Volunteer") {
+        navigation.reset({
+          index: 0,
+          routes: [{ name: "VolunteerHub" }],
+        });
+      } else if (role === "Donor") {
+        navigation.reset({
+          index: 0,
+          routes: [{ name: "DonorHub" }],
+        });
+      } else {
+        navigation.reset({
+          index: 0,
+          routes: [{ name: "HomeProfile" }],
+        });
+      }
+    } catch (error) {
+      Alert.alert("Error", "Server not reachable");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -67,13 +115,16 @@ export default function LoginScreen({ navigation }) {
       <Text style={styles.roleLabel}>SELECT ACCOUNT TYPE</Text>
 
       {/* Email */}
-      <Text style={styles.label}>Email or Username</Text>
+      <Text style={styles.label}>Email</Text>
       <View style={styles.inputBox}>
         <Ionicons name="mail-outline" size={18} color="#9CA3AF" />
         <TextInput
           style={styles.input}
           placeholder="hello@hopeconnect.org"
           keyboardType="email-address"
+          value={email}
+          onChangeText={setEmail}
+          autoCapitalize="none"
         />
       </View>
 
@@ -85,6 +136,8 @@ export default function LoginScreen({ navigation }) {
           style={styles.input}
           placeholder="••••••••"
           secureTextEntry
+          value={password}
+          onChangeText={setPassword}
         />
         <Ionicons name="eye-outline" size={18} color="#9CA3AF" />
       </View>
@@ -95,8 +148,14 @@ export default function LoginScreen({ navigation }) {
       </TouchableOpacity>
 
       {/* Login */}
-      <TouchableOpacity style={styles.loginBtn} onPress={handleLogin}>
-        <Text style={styles.loginText}>Login</Text>
+      <TouchableOpacity
+        style={styles.loginBtn}
+        onPress={handleLogin}
+        disabled={loading}
+      >
+        <Text style={styles.loginText}>
+          {loading ? "Logging in..." : "Login"}
+        </Text>
       </TouchableOpacity>
     </View>
   );
