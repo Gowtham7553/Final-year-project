@@ -16,10 +16,13 @@ export default function HomeScreen({ navigation }) {
         {/* Header */}
         <View style={styles.header}>
           <View style={styles.headerLeft}>
-            <Image
-              source={require("../assets/5686541.png")}
-              style={styles.logo}
-            />
+           <TouchableOpacity onPress={() => navigation.reset({
+             index: 0,
+             routes: [{ name: "Welcome" }],
+            })
+            }>
+              <Ionicons name="arrow-back" size={22} />
+              </TouchableOpacity>
             <Text style={styles.logoText}>Hope Connect</Text>
           </View>
           <TouchableOpacity

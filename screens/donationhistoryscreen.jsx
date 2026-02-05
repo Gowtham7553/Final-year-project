@@ -1,14 +1,47 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
   TouchableOpacity,
+  ActivityIndicator,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 
-export default function DonationHistoryScreen({ navigation }) {
+const BASE_URL = "http://10.172.162.124:5000";
+
+
+export default function DonationHistoryScreen({ navigation, route }) {
+  const donorId = route?.params?.donorId;
+
+  const [loading, setLoading] = useState(true);
+  const [donations, setDonations] = useState([]);
+  const [totalAmount, setTotalAmount] = useState(0);
+  const [count, setCount] = useState(0);
+
+  useEffect(() => {
+    if (!donorId) return;
+
+    fetch(`${BASE_URL}/api/donations/history/${donorId}`)
+      .then((res) => res.json())
+      .then((data) => {
+        setDonations(data.donations || []);
+        setTotalAmount(data.totalAmount || 0);
+        setCount(data.count || 0);
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
+  }, [donorId]);
+
+  if (loading) {
+    return (
+      <View style={styles.center}>
+        <ActivityIndicator size="large" color="#7C3AED" />
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
       {/* Header */}
@@ -20,95 +53,64 @@ export default function DonationHistoryScreen({ navigation }) {
         <View style={{ width: 22 }} />
       </View>
 
-      {/* Summary Card */}
+      {/* Summary */}
       <View style={styles.summaryCard}>
         <Text style={styles.summaryTitle}>Total Donated</Text>
-        <Text style={styles.summaryAmount}>₹12,500</Text>
-        <Text style={styles.summarySub}>Across 8 donations</Text>
+        <Text style={styles.summaryAmount}>₹{totalAmount}</Text>
+        <Text style={styles.summarySub}>
+          Across {count} donations
+        </Text>
       </View>
 
       {/* History */}
       <ScrollView showsVerticalScrollIndicator={false}>
-        {/* Donation Item */}
-        <View style={styles.historyCard}>
-          <View style={styles.row}>
-            <View style={styles.iconCircle}>
-              <Ionicons name="heart" size={18} color="#7C3AED" />
-            </View>
-            <View style={styles.flex}>
-              <Text style={styles.donationTitle}>
-                Sunshine Children’s Home
-              </Text>
-              <Text style={styles.donationDate}>24 Jan 2026</Text>
-            </View>
-            <Text style={styles.amount}>₹2,000</Text>
-          </View>
-
-          <View style={styles.statusRow}>
-            <Text style={styles.status}>Completed</Text>
-            <TouchableOpacity>
-              <Text style={styles.receipt}>View Receipt</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        <View style={styles.historyCard}>
-          <View style={styles.row}>
-            <View style={styles.iconCircle}>
-              <Ionicons name="school-outline" size={18} color="#7C3AED" />
-            </View>
-            <View style={styles.flex}>
-              <Text style={styles.donationTitle}>
-                School Supplies Fund
-              </Text>
-              <Text style={styles.donationDate}>10 Jan 2026</Text>
-            </View>
-            <Text style={styles.amount}>₹1,500</Text>
-          </View>
-
-          <View style={styles.statusRow}>
-            <Text style={styles.status}>Completed</Text>
-            <TouchableOpacity>
-              <Text style={styles.receipt}>View Receipt</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        <View style={styles.historyCard}>
-          <View style={styles.row}>
-            <View style={[styles.iconCircle, styles.pendingBg]}>
-              <Ionicons name="time-outline" size={18} color="#D97706" />
-            </View>
-            <View style={styles.flex}>
-              <Text style={styles.donationTitle}>
-                Emergency Food Support
-              </Text>
-              <Text style={styles.donationDate}>02 Jan 2026</Text>
-            </View>
-            <Text style={styles.amount}>₹3,000</Text>
-          </View>
-
-          <View style={styles.statusRow}>
-            <Text style={[styles.status, styles.pending]}>
-              Processing
+        {donations.length === 0 ? (
+          <View style={styles.empty}>
+            <Ionicons name="heart-outline" size={40} color="#D1D5DB" />
+            <Text style={styles.emptyText}>
+              No donations yet
             </Text>
-            <Text style={styles.receiptDisabled}>Receipt Pending</Text>
           </View>
-        </View>
+        ) : (
+          donations.map((donation) => (
+            <View key={donation._id} style={styles.historyCard}>
+              <View style={styles.row}>
+                <View style={styles.iconCircle}>
+                  <Ionicons name="heart" size={18} color="#7C3AED" />
+                </View>
 
-        {/* Empty State Example */}
-        {/* 
-        <View style={styles.empty}>
-          <Ionicons name="heart-outline" size={40} color="#D1D5DB" />
-          <Text style={styles.emptyText}>No donations yet</Text>
-        </View> 
-        */}
+                <View style={styles.flex}>
+                  <Text style={styles.donationTitle}>
+                    Hope Connect Donation
+                  </Text>
+                  <Text style={styles.donationDate}>
+                    {new Date(donation.createdAt).toDateString()}
+                  </Text>
+                </View>
+
+                <Text style={styles.amount}>
+                  ₹{donation.amount}
+                </Text>
+              </View>
+
+              <View style={styles.statusRow}>
+                <Text style={styles.status}>
+                  {donation.status || "Completed"}
+                </Text>
+                <Text style={styles.receipt}>
+                  TXN{donation._id.slice(-6).toUpperCase()}
+                </Text>
+              </View>
+            </View>
+          ))
+        )}
 
         <View style={{ height: 40 }} />
       </ScrollView>
     </View>
   );
 }
+
 
 const PURPLE = "#7C3AED";
 

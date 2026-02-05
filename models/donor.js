@@ -47,6 +47,11 @@ const donorSchema = new mongoose.Schema(
       type: String,
       default: "Donor",
     },
+    profileImage: {
+  type: String,
+  default:"",
+},
+
   },
   {
     timestamps: true,

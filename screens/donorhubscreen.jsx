@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -8,24 +8,54 @@ import {
   ImageBackground,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function DonorHubScreen({ navigation }) {
+  const [donorId, setDonorId] = useState(null);
+
+  // 🔐 Load donorId from storage (AFTER LOGIN)
+  useEffect(() => {
+    const loadDonor = async () => {
+      const stored = await AsyncStorage.getItem("donor");
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        setDonorId(parsed.donorId);
+      }
+    };
+    loadDonor();
+  }, []);
+
+  // ⏳ Prevent crash while loading
+  if (!donorId) {
+    return (
+      <View style={styles.loading}>
+        <Text>Loading Donor Hub...</Text>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* Header */}
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => navigation.goBack()}>
-            <Ionicons name="arrow-back" size={22} />
-          </TouchableOpacity>
+          <TouchableOpacity
+  onPress={() =>
+    navigation.reset({
+      index: 0,
+      routes: [{ name: "Login" }],
+    })
+  }
+>
+  <Ionicons name="arrow-back" size={22} />
+</TouchableOpacity>
+
 
           <Text style={styles.headerTitle}>Donor Hub</Text>
-
-          {/* 🔴 Red dot REMOVED */}
           <Ionicons name="notifications-outline" size={22} />
         </View>
 
-        {/* Hero with Image Background */}
+        {/* Hero */}
         <ImageBackground
           source={require("../assets/donorhero.jpg")}
           style={styles.heroCard}
@@ -43,7 +73,7 @@ export default function DonorHubScreen({ navigation }) {
         {/* Quick Actions */}
         <Text style={styles.sectionTitle}>Quick Actions</Text>
 
-        {/* Make a Donation */}
+        {/* Donate */}
         <View style={styles.donateCard}>
           <View style={styles.donateLeft}>
             <View style={styles.iconCircle}>
@@ -52,14 +82,16 @@ export default function DonorHubScreen({ navigation }) {
             <View>
               <Text style={styles.donateTitle}>Make a Donation</Text>
               <Text style={styles.donateDesc}>
-                Securely support a child 
+                Securely support a child
               </Text>
             </View>
           </View>
 
           <TouchableOpacity
             style={styles.donateBtn}
-            onPress={() => navigation.navigate("Donate")}
+            onPress={() =>
+              navigation.navigate("Donate", { donorId })
+            }
           >
             <Text style={styles.donateBtnText}>Donate</Text>
           </TouchableOpacity>
@@ -67,30 +99,42 @@ export default function DonorHubScreen({ navigation }) {
 
         {/* Grid */}
         <View style={styles.grid}>
-          <TouchableOpacity style={styles.gridCard}
-            onPress={() => navigation.navigate("ItemDonation")}>
+          <TouchableOpacity
+            style={styles.gridCard}
+            onPress={() => navigation.navigate("ItemDonation")}
+          >
             <View style={[styles.gridIcon, { backgroundColor: "#EDE9FE" }]}>
               <Ionicons name="cash-outline" size={22} color="#7C3AED" />
             </View>
             <Text style={styles.gridTitle}>Donate Items</Text>
-            <Text style={styles.gridDesc}>Give daily needs & supplies</Text>
+            <Text style={styles.gridDesc}>
+              Give daily needs & supplies
+            </Text>
           </TouchableOpacity>
 
           <TouchableOpacity
             style={styles.gridCard}
-            onPress={() => navigation.navigate("DonationHistory")}
+            onPress={() =>
+              navigation.navigate("DonationHistory", { donorId })
+            }
           >
             <View style={[styles.gridIcon, { backgroundColor: "#FEF3C7" }]}>
               <Ionicons name="time-outline" size={22} color="#D97706" />
             </View>
             <Text style={styles.gridTitle}>Donation History</Text>
-            <Text style={styles.gridDesc}>Track your past contributions</Text>
+            <Text style={styles.gridDesc}>
+              Track your past contributions
+            </Text>
           </TouchableOpacity>
         </View>
 
         {/* Profile */}
-        <TouchableOpacity style={styles.profileCard}
-          onPress={() => navigation.navigate("DonorProfile")}>
+        <TouchableOpacity
+          style={styles.profileCard}
+          onPress={() =>
+            navigation.navigate("DonorProfile", { donorId })
+          }
+        >
           <View style={styles.profileLeft}>
             <View style={styles.iconCircle}>
               <Ionicons name="person-outline" size={20} color="#7C3AED" />
@@ -105,31 +149,20 @@ export default function DonorHubScreen({ navigation }) {
           <Ionicons name="chevron-forward" size={18} color="#9CA3AF" />
         </TouchableOpacity>
 
-        {/* Info Box */}
+        {/* Info */}
         <View style={styles.infoBox}>
           <Ionicons name="bulb-outline" size={20} color="#7C3AED" />
           <Text style={styles.infoText}>
-            Did you know? Just <Text style={styles.bold}>₹500</Text> provides a
-            week of nutritious meals for a child in our partner homes.
+            Did you know? Just <Text style={styles.bold}>₹500</Text>{" "}
+            provides a week of nutritious meals for a child.
           </Text>
         </View>
 
-        {/* Footer */}
-        <View style={styles.footer}>
-          <Text style={styles.footerText}>🔒 Secure SSL</Text>
-          <Text style={styles.footerText}>✔ Verified NGO</Text>
-        </View>
-
-        <Text style={styles.copy}>
-          © 2024 Hope Connect. Making impact visible.
-        </Text>
-
         <View style={{ height: 80 }} />
       </ScrollView>
-
     </View>
   );
-};
+}
 
 const PURPLE = "#7C3AED";
 
@@ -139,56 +172,52 @@ const styles = StyleSheet.create({
     backgroundColor: "#F9FAFB",
     paddingHorizontal: 16,
   },
-
+  loading: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
   header: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     marginVertical: 14,
   },
-
   headerTitle: {
     fontSize: 16,
     fontWeight: "700",
   },
-
   heroCard: {
     height: 180,
     borderRadius: 18,
     marginBottom: 20,
     overflow: "hidden",
   },
-
   heroOverlay: {
     flex: 1,
     padding: 18,
     justifyContent: "flex-end",
     backgroundColor: "rgba(0,0,0,0.45)",
   },
-
   heroTag: {
     color: "#E9D5FF",
     fontSize: 12,
   },
-
   heroTitle: {
     color: "#fff",
     fontSize: 22,
     fontWeight: "800",
     marginTop: 6,
   },
-
   heroDesc: {
     color: "#E5E7EB",
     marginTop: 4,
   },
-
   sectionTitle: {
     fontSize: 18,
     fontWeight: "800",
     marginBottom: 12,
   },
-
   donateCard: {
     backgroundColor: "#fff",
     borderRadius: 16,
@@ -198,12 +227,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 16,
   },
-
   donateLeft: {
     flexDirection: "row",
     alignItems: "center",
   },
-
   iconCircle: {
     width: 42,
     height: 42,
@@ -213,41 +240,34 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     marginRight: 12,
   },
-
   donateTitle: {
     fontWeight: "700",
   },
-
   donateDesc: {
     fontSize: 12,
     color: "#6B7280",
   },
-
   donateBtn: {
     backgroundColor: PURPLE,
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 20,
   },
-
   donateBtnText: {
     color: "#fff",
     fontWeight: "700",
   },
-
   grid: {
     flexDirection: "row",
     justifyContent: "space-between",
     marginBottom: 16,
   },
-
   gridCard: {
     width: "48%",
     backgroundColor: "#fff",
     borderRadius: 16,
     padding: 14,
   },
-
   gridIcon: {
     width: 38,
     height: 38,
@@ -256,16 +276,13 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     marginBottom: 8,
   },
-
   gridTitle: {
     fontWeight: "700",
   },
-
   gridDesc: {
     fontSize: 12,
     color: "#6B7280",
   },
-
   profileCard: {
     backgroundColor: "#fff",
     borderRadius: 16,
@@ -275,21 +292,17 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 16,
   },
-
   profileLeft: {
     flexDirection: "row",
     alignItems: "center",
   },
-
   profileTitle: {
     fontWeight: "700",
   },
-
   profileDesc: {
     fontSize: 12,
     color: "#6B7280",
   },
-
   infoBox: {
     backgroundColor: "#F3E8FF",
     borderRadius: 16,
@@ -298,34 +311,12 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 16,
   },
-
   infoText: {
     marginLeft: 10,
     color: "#4C1D95",
     flex: 1,
   },
-
   bold: {
     fontWeight: "800",
   },
-
-  footer: {
-    flexDirection: "row",
-    justifyContent: "center",
-    gap: 20,
-    marginBottom: 6,
-  },
-
-  footerText: {
-    fontSize: 12,
-    color: "#6B7280",
-  },
-
-  copy: {
-    fontSize: 11,
-    color: "#9CA3AF",
-    textAlign: "center",
-  },
-
-  
 });

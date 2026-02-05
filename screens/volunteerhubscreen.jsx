@@ -13,9 +13,17 @@ export default function VolunteerHubScreen({ navigation }) {
   return (
     <View style={styles.container}>
       <ScrollView showsVerticalScrollIndicator={false}>
+
         {/* Header */}
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => navigation.goBack()}>
+          <TouchableOpacity
+            onPress={() =>
+              navigation.reset({
+                index: 0,
+                routes: [{ name: "Login" }],
+              })
+            }
+          >
             <Ionicons name="arrow-back" size={22} />
           </TouchableOpacity>
 
@@ -23,13 +31,14 @@ export default function VolunteerHubScreen({ navigation }) {
 
           <TouchableOpacity>
             <Ionicons name="notifications-outline" size={22} />
-            <View style={styles} />
+            {/* Optional notification dot */}
+            {/* <View style={styles.dot} /> */}
           </TouchableOpacity>
         </View>
 
         {/* Hero with Image Background */}
         <ImageBackground
-          source={require("../assets/childrens.jpg")} // ✅ SAME IMAGE STYLE AS UPLOADED
+          source={require("../assets/childrens.jpg")}
           style={styles.heroCard}
           imageStyle={{ borderRadius: 18 }}
         >
@@ -47,11 +56,7 @@ export default function VolunteerHubScreen({ navigation }) {
         <View style={styles.actionCard}>
           <View style={styles.actionLeft}>
             <View style={styles.iconCircle}>
-              <Ionicons
-                name="clipboard-outline"
-                size={20}
-                color="#7C3AED"
-              />
+              <Ionicons name="clipboard-outline" size={20} color="#7C3AED" />
             </View>
             <View>
               <Text style={styles.actionTitle}>Ongoing Tasks</Text>
@@ -61,8 +66,10 @@ export default function VolunteerHubScreen({ navigation }) {
             </View>
           </View>
 
-          <TouchableOpacity style={styles.actionBtn}
-            onPress={() => navigation.navigate("Tasks")}>
+          <TouchableOpacity
+            style={styles.actionBtn}
+            onPress={() => navigation.navigate("Tasks")}
+          >
             <Text style={styles.actionBtnText}>View Tasks</Text>
           </TouchableOpacity>
         </View>
@@ -77,8 +84,10 @@ export default function VolunteerHubScreen({ navigation }) {
             </Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.gridCard}
-          onPress={() => navigation.navigate("TasksHistory")}>
+          <TouchableOpacity
+            style={styles.gridCard}
+            onPress={() => navigation.navigate("TasksHistory")}
+          >
             <Ionicons name="time-outline" size={22} color="#7C3AED" />
             <Text style={styles.gridTitle}>Tasks History</Text>
             <Text style={styles.gridDesc}>
@@ -88,36 +97,26 @@ export default function VolunteerHubScreen({ navigation }) {
         </View>
 
         {/* Profile */}
-        <TouchableOpacity style={styles.profileCard}
-          onPress={() => navigation.navigate("VolunteerProfile")}>
+        <TouchableOpacity
+          style={styles.profileCard}
+          onPress={() => navigation.navigate("VolunteerProfile")}
+        >
           <View style={styles.profileLeft}>
             <View style={styles.iconCircle}>
-              <Ionicons
-                name="person-outline"
-                size={20}
-                color="#7C3AED"
-              />
+              <Ionicons name="person-outline" size={20} color="#7C3AED" />
             </View>
             <Text style={styles.profileText}>My Profile</Text>
           </View>
-          <Ionicons
-            name="chevron-forward"
-            size={18}
-            color="#9CA3AF"
-          />
+          <Ionicons name="chevron-forward" size={18} color="#9CA3AF" />
         </TouchableOpacity>
 
         {/* Volunteer Tip */}
         <View style={styles.tipBox}>
-          <Ionicons
-            name="bulb-outline"
-            size={20}
-            color="#7C3AED"
-          />
+          <Ionicons name="bulb-outline" size={20} color="#7C3AED" />
           <Text style={styles.tipText}>
             Consistent involvement (even just{" "}
-            <Text style={styles.bold}>2 hours</Text> a week) builds
-            stronger bonds with the children.
+            <Text style={styles.bold}>2 hours</Text> a week) builds stronger bonds
+            with the children.
           </Text>
         </View>
 
@@ -168,7 +167,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#EF4444",
   },
 
-  /* HERO */
   heroCard: {
     height: 170,
     borderRadius: 18,

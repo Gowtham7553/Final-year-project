@@ -12,22 +12,25 @@ router.post("/login", async (req, res) => {
   try {
     let user;
 
-    // 🔹 ROLE BASED COLLECTION CHECK
+    // 🔹 ROLE BASED LOGIN
     if (role === "Volunteer") {
       user = await Volunteer.findOne({ email });
-    } else if (role === "Donor") {
+    } 
+    else if (role === "Donor") {
       user = await Donor.findOne({ email });
-    } else if (role === "Home") {
+    } 
+    else if (role === "Home") {
       user = await Home.findOne({ email });
     }
 
+    // ❌ USER NOT FOUND
     if (!user) {
       return res.status(404).json({
         message: `${role} account not found`,
       });
     }
 
-    // 🔹 PASSWORD CHECK
+    // 🔐 PASSWORD CHECK
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(401).json({
@@ -35,18 +38,16 @@ router.post("/login", async (req, res) => {
       });
     }
 
-    // 🔹 OPTIONAL: HOME APPROVAL CHECK
-    if (role === "Home" && user.status !== "APPROVED") {
-      return res.status(403).json({
-        message: "Home not approved yet",
-      });
-    }
+    // ⭐ REMOVED HOME APPROVAL CHECK
+    // (Now home can login immediately after register)
 
+    // ✅ SUCCESS LOGIN
     res.json({
       message: "Login successful",
       role,
       userId: user._id,
     });
+
   } catch (error) {
     res.status(500).json({
       message: "Login failed",

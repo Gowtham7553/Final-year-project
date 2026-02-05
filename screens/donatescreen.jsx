@@ -6,14 +6,67 @@ import {
   TouchableOpacity,
   ScrollView,
   TextInput,
+  Alert,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 
-export default function DonateScreen({ navigation }) {
+const BASE_URL = "http://10.172.162.124:5000";
+ // SERVER IP
+
+export default function DonateScreen({ navigation, route }) {
+  // ✅ donorId received from DonorHub
+  const donorId = route?.params?.donorId;
+
   const [amount, setAmount] = useState(500);
   const [method, setMethod] = useState("GPay");
+  const [customAmount, setCustomAmount] = useState("");
 
   const amounts = [100, 250, 500, 1000];
+
+  const handleDonate = async () => {
+    if (!donorId) {
+      Alert.alert("Error", "Donor not identified. Please login again.");
+      return;
+    }
+
+    const finalAmount = customAmount
+      ? Number(customAmount)
+      : amount;
+
+    if (!finalAmount || finalAmount <= 0) {
+      Alert.alert("Error", "Enter a valid amount");
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        `${BASE_URL}/api/donations/create`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            donorId: donorId,
+            amount: finalAmount,
+            paymentMethod: method,
+          }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok || !data.donation) {
+        Alert.alert("Error", data.message || "Donation failed");
+        return;
+      }
+
+      // ✅ PASS DONATION DATA TO SUCCESS SCREEN
+      navigation.navigate("DonationSuccess", {
+        donation: data.donation,
+      });
+    } catch (error) {
+      Alert.alert("Error", "Server not reachable");
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -29,23 +82,11 @@ export default function DonateScreen({ navigation }) {
 
         {/* Hero */}
         <View style={styles.hero}>
-          <Text style={styles.verified}>
-            ✔ Verified Non-Profit Organization
-          </Text>
+          <Text style={styles.verified}>✔ Verified Non-Profit</Text>
           <Text style={styles.title}>Make a Difference</Text>
           <Text style={styles.subtitle}>
-            100% of your donation goes directly to the children’s needs.
+            100% of your donation supports children.
           </Text>
-        </View>
-
-        {/* Donation Type */}
-        <View style={styles.switch}>
-          <View style={[styles.switchBtn, styles.switchActive]}>
-            <Text style={styles.switchTextActive}>Monetary</Text>
-          </View>
-          <View style={styles.switchBtn}>
-            <Text style={styles.switchText}>Daily Needs</Text>
-          </View>
         </View>
 
         {/* Amount */}
@@ -58,7 +99,10 @@ export default function DonateScreen({ navigation }) {
                 styles.amountBox,
                 amount === amt && styles.amountActive,
               ]}
-              onPress={() => setAmount(amt)}
+              onPress={() => {
+                setAmount(amt);
+                setCustomAmount("");
+              }}
             >
               <Text
                 style={[
@@ -77,34 +121,14 @@ export default function DonateScreen({ navigation }) {
           <TextInput
             placeholder="Enter custom amount"
             keyboardType="numeric"
+            value={customAmount}
+            onChangeText={setCustomAmount}
             style={{ marginLeft: 8, flex: 1 }}
           />
         </View>
 
-        {/* Impact */}
-        <View style={styles.impactBox}>
-          <Ionicons name="heart" size={18} color="#7C3AED" />
-          <Text style={styles.impactText}>
-            Your impact: <Text style={styles.bold}>₹500</Text> provides a
-            complete school kit and meals for 2 children for a week.
-          </Text>
-        </View>
-
-        {/* Monthly */}
-        <View style={styles.monthly}>
-          <Ionicons name="calendar-outline" size={18} color="#7C3AED" />
-          <View style={{ flex: 1, marginLeft: 8 }}>
-            <Text style={styles.monthlyTitle}>Monthly Donation</Text>
-            <Text style={styles.monthlySub}>
-              Make a sustained impact
-            </Text>
-          </View>
-          <Ionicons name="toggle-outline" size={36} color="#D1D5DB" />
-        </View>
-
         {/* Payment */}
         <Text style={styles.section}>Payment Method</Text>
-
         {["GPay", "Paytm", "Apple Pay", "Credit Card"].map((item) => (
           <TouchableOpacity
             key={item}
@@ -124,21 +148,17 @@ export default function DonateScreen({ navigation }) {
           </TouchableOpacity>
         ))}
 
-        {/* Security */}
-        <View style={styles.security}>
-          <Ionicons name="lock-closed" size={14} color="#16A34A" />
-          <Text style={styles.securityText}>
-            Secure 256-bit SSL Encryption
-          </Text>
-        </View>
-
         <View style={{ height: 80 }} />
       </ScrollView>
 
       {/* Donate Button */}
-      <TouchableOpacity style={styles.donateBtn}
-      onPress ={() => navigation.navigate("DonationSuccess")}>
-        <Text style={styles.donateText}>Donate ₹{amount} 💜</Text>
+      <TouchableOpacity
+        style={styles.donateBtn}
+        onPress={handleDonate}
+      >
+        <Text style={styles.donateText}>
+          Donate ₹{customAmount || amount} 💜
+        </Text>
       </TouchableOpacity>
     </View>
   );
@@ -152,80 +172,42 @@ const styles = StyleSheet.create({
     backgroundColor: "#F9FAFB",
     paddingHorizontal: 16,
   },
-
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     marginVertical: 14,
   },
-
   headerTitle: {
     fontWeight: "700",
   },
-
   hero: {
     alignItems: "center",
     marginBottom: 20,
   },
-
   verified: {
     color: "#16A34A",
     fontSize: 12,
     marginBottom: 6,
   },
-
   title: {
     fontSize: 22,
     fontWeight: "800",
   },
-
   subtitle: {
     color: "#6B7280",
     textAlign: "center",
     marginTop: 6,
   },
-
-  switch: {
-    flexDirection: "row",
-    backgroundColor: "#EFEAFE",
-    borderRadius: 24,
-    padding: 4,
-    marginBottom: 20,
-  },
-
-  switchBtn: {
-    flex: 1,
-    paddingVertical: 10,
-    borderRadius: 20,
-    alignItems: "center",
-  },
-
-  switchActive: {
-    backgroundColor: "#fff",
-  },
-
-  switchText: {
-    color: "#6B7280",
-    fontWeight: "600",
-  },
-
-  switchTextActive: {
-    color: PURPLE,
-    fontWeight: "700",
-  },
-
   section: {
     fontWeight: "800",
     marginBottom: 10,
   },
-
   amountGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
     justifyContent: "space-between",
   },
-
   amountBox: {
     width: "48%",
     borderWidth: 1,
@@ -236,20 +218,16 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     backgroundColor: "#fff",
   },
-
   amountActive: {
     backgroundColor: PURPLE,
     borderColor: PURPLE,
   },
-
   amountText: {
     fontWeight: "700",
   },
-
   amountTextActive: {
     color: "#fff",
   },
-
   customInput: {
     flexDirection: "row",
     alignItems: "center",
@@ -260,43 +238,6 @@ const styles = StyleSheet.create({
     borderColor: "#E5E7EB",
     marginBottom: 14,
   },
-
-  impactBox: {
-    flexDirection: "row",
-    backgroundColor: "#F3E8FF",
-    padding: 14,
-    borderRadius: 14,
-    marginBottom: 16,
-  },
-
-  impactText: {
-    marginLeft: 8,
-    color: "#4C1D95",
-    flex: 1,
-  },
-
-  bold: {
-    fontWeight: "800",
-  },
-
-  monthly: {
-    flexDirection: "row",
-    backgroundColor: "#fff",
-    padding: 14,
-    borderRadius: 14,
-    alignItems: "center",
-    marginBottom: 20,
-  },
-
-  monthlyTitle: {
-    fontWeight: "700",
-  },
-
-  monthlySub: {
-    fontSize: 12,
-    color: "#6B7280",
-  },
-
   paymentRow: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -306,23 +247,9 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     marginBottom: 10,
   },
-
   paymentText: {
     fontWeight: "600",
   },
-
-  security: {
-    flexDirection: "row",
-    justifyContent: "center",
-    marginTop: 16,
-  },
-
-  securityText: {
-    fontSize: 12,
-    color: "#16A34A",
-    marginLeft: 6,
-  },
-
   donateBtn: {
     position: "absolute",
     bottom: 16,
@@ -333,7 +260,6 @@ const styles = StyleSheet.create({
     borderRadius: 30,
     alignItems: "center",
   },
-
   donateText: {
     color: "#fff",
     fontWeight: "800",

@@ -8,6 +8,9 @@ import {
   Alert,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
+const BASE_URL = "http://10.172.162.124:5000"; // ✅ YOUR SERVER IP
 
 export default function LoginScreen({ navigation }) {
   const [role, setRole] = useState("Volunteer");
@@ -25,44 +28,70 @@ export default function LoginScreen({ navigation }) {
     setLoading(true);
 
     try {
-      const response = await fetch(
-        "http://10.79.215.124:5000/api/auth/login",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            email,
-            password,
-            role,
-          }),
-        }
-      );
+      const response = await fetch(`${BASE_URL}/api/auth/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email,
+          password,
+          role, // ⭐ VERY IMPORTANT
+        }),
+      });
 
       const data = await response.json();
 
       if (!response.ok) {
-        Alert.alert("Login Failed", data.message);
+        Alert.alert("Login Failed", data.message || "Invalid credentials");
         setLoading(false);
         return;
       }
 
-      // ✅ ROLE BASED NAVIGATION (AUTHORIZATION)
+      // 🔐 CLEAR OLD SESSION
+      await AsyncStorage.clear();
+
+      // ✅ ROLE BASED NAVIGATION (STRICT)
       if (role === "Volunteer") {
+        await AsyncStorage.setItem(
+          "volunteer",
+          JSON.stringify({ volunteerId: data.userId })
+        );
+
         navigation.reset({
           index: 0,
           routes: [{ name: "VolunteerHub" }],
         });
+
       } else if (role === "Donor") {
+        await AsyncStorage.setItem(
+          "donor",
+          JSON.stringify({ donorId: data.userId })
+        );
+
         navigation.reset({
           index: 0,
           routes: [{ name: "DonorHub" }],
         });
-      } else {
-        navigation.reset({
-          index: 0,
-          routes: [{ name: "HomeProfile" }],
-        });
-      }
+
+      } else if (role === "Home") {
+
+  // save in storage
+  await AsyncStorage.setItem(
+    "home",
+    JSON.stringify({ homeId: data.userId })
+  );
+
+  // ⭐ PASS homeId to profile screen
+  navigation.reset({
+    index: 0,
+    routes: [
+      {
+        name: "HomeProfile",
+        params: { homeId: data.userId }, // ⭐ IMPORTANT
+      },
+    ],
+  });
+}
+
     } catch (error) {
       Alert.alert("Error", "Server not reachable");
     } finally {
@@ -74,9 +103,10 @@ export default function LoginScreen({ navigation }) {
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back" size={22} />
-        </TouchableOpacity>
+       <TouchableOpacity onPress={() => navigation.navigate("Welcome")}>
+  <Ionicons name="arrow-back" size={22} />
+</TouchableOpacity>
+
 
         <View style={styles.headerCenter}>
           <Ionicons name="hand-left" size={20} color="#8B5CF6" />
@@ -170,37 +200,31 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 16,
   },
-
   header: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     marginBottom: 30,
   },
-
   headerCenter: {
     flexDirection: "row",
     alignItems: "center",
   },
-
   logoText: {
     marginLeft: 6,
     fontWeight: "700",
     color: PURPLE,
   },
-
   title: {
     fontSize: 28,
     fontWeight: "800",
     color: "#3B1D6A",
     marginBottom: 8,
   },
-
   subtitle: {
     color: "#6B7280",
     marginBottom: 24,
   },
-
   roleSwitch: {
     flexDirection: "row",
     backgroundColor: "#EFEAFE",
@@ -208,27 +232,22 @@ const styles = StyleSheet.create({
     padding: 4,
     marginBottom: 8,
   },
-
   roleBtn: {
     flex: 1,
     paddingVertical: 10,
     borderRadius: 20,
     alignItems: "center",
   },
-
   roleActive: {
     backgroundColor: "#fff",
   },
-
   roleText: {
     fontWeight: "600",
     color: "#6B7280",
   },
-
   roleTextActive: {
     color: PURPLE,
   },
-
   roleLabel: {
     fontSize: 11,
     letterSpacing: 1,
@@ -237,12 +256,10 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     marginTop: 6,
   },
-
   label: {
     fontWeight: "600",
     marginBottom: 6,
   },
-
   inputBox: {
     flexDirection: "row",
     alignItems: "center",
@@ -254,29 +271,24 @@ const styles = StyleSheet.create({
     borderColor: "#E5E7EB",
     marginBottom: 14,
   },
-
   input: {
     flex: 1,
     marginLeft: 8,
   },
-
   forgot: {
     alignSelf: "flex-end",
     marginBottom: 30,
   },
-
   forgotText: {
     color: PURPLE,
     fontWeight: "600",
   },
-
   loginBtn: {
     backgroundColor: PURPLE,
     paddingVertical: 16,
     borderRadius: 30,
     alignItems: "center",
   },
-
   loginText: {
     color: "#fff",
     fontSize: 16,
