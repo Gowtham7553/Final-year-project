@@ -22,6 +22,9 @@ import Donationregistrationscreen from "./screens/donationregistrationscreen";
 import ItemDonationScreen from "./screens/itemsdonation";
 import Donorprofilescreen from "./screens/donorprofilescreen";
 import SubmitRequestScreen from "./screens/submitrequestscreen";
+import MapPickerScreen from "./screens/mappickerscreen";
+import LiveTrackingScreen from "./screens/livetrackingscreen";
+import TrackDonationScreen from "./screens/trackdonationscreen";
 const Stack = createNativeStackNavigator();
 
 export default function App() {
@@ -56,6 +59,9 @@ export default function App() {
         <Stack.Screen name="ItemDonation" component={ItemDonationScreen} />
         <Stack.Screen name="DonorProfile" component={Donorprofilescreen} />
         <Stack.Screen name="SubmitRequest" component={SubmitRequestScreen} />
+        <Stack.Screen name="MapPicker" component={MapPickerScreen} />
+        <Stack.Screen name="LiveTracking" component={LiveTrackingScreen} />
+        <Stack.Screen name="TrackDonation" component={TrackDonationScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

@@ -34,7 +34,7 @@ export default function CreateAccountScreen({ navigation }) {
 
     try {
       const response = await fetch(
-        "http://10.172.162.124:5000/api/donors/register",
+        "http://172.18.41.124:5000/api/donors/register",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },

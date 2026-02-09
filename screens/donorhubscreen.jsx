@@ -13,7 +13,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 export default function DonorHubScreen({ navigation }) {
   const [donorId, setDonorId] = useState(null);
 
-  // 🔐 Load donorId from storage (AFTER LOGIN)
+  /* LOAD DONOR ID */
   useEffect(() => {
     const loadDonor = async () => {
       const stored = await AsyncStorage.getItem("donor");
@@ -25,7 +25,6 @@ export default function DonorHubScreen({ navigation }) {
     loadDonor();
   }, []);
 
-  // ⏳ Prevent crash while loading
   if (!donorId) {
     return (
       <View style={styles.loading}>
@@ -37,25 +36,25 @@ export default function DonorHubScreen({ navigation }) {
   return (
     <View style={styles.container}>
       <ScrollView showsVerticalScrollIndicator={false}>
-        {/* Header */}
+        
+        {/* HEADER */}
         <View style={styles.header}>
           <TouchableOpacity
-  onPress={() =>
-    navigation.reset({
-      index: 0,
-      routes: [{ name: "Login" }],
-    })
-  }
->
-  <Ionicons name="arrow-back" size={22} />
-</TouchableOpacity>
-
+            onPress={() =>
+              navigation.reset({
+                index: 0,
+                routes: [{ name: "Login" }],
+              })
+            }
+          >
+            <Ionicons name="arrow-back" size={22} />
+          </TouchableOpacity>
 
           <Text style={styles.headerTitle}>Donor Hub</Text>
           <Ionicons name="notifications-outline" size={22} />
         </View>
 
-        {/* Hero */}
+        {/* HERO */}
         <ImageBackground
           source={require("../assets/donorhero.jpg")}
           style={styles.heroCard}
@@ -70,10 +69,10 @@ export default function DonorHubScreen({ navigation }) {
           </View>
         </ImageBackground>
 
-        {/* Quick Actions */}
+        {/* QUICK ACTIONS */}
         <Text style={styles.sectionTitle}>Quick Actions</Text>
 
-        {/* Donate */}
+        {/* DONATE MONEY */}
         <View style={styles.donateCard}>
           <View style={styles.donateLeft}>
             <View style={styles.iconCircle}>
@@ -89,22 +88,22 @@ export default function DonorHubScreen({ navigation }) {
 
           <TouchableOpacity
             style={styles.donateBtn}
-            onPress={() =>
-              navigation.navigate("Donate", { donorId })
-            }
+            onPress={() => navigation.navigate("Donate", { donorId })}
           >
             <Text style={styles.donateBtnText}>Donate</Text>
           </TouchableOpacity>
         </View>
 
-        {/* Grid */}
+        {/* GRID */}
         <View style={styles.grid}>
+
+          {/* Donate Items */}
           <TouchableOpacity
             style={styles.gridCard}
             onPress={() => navigation.navigate("ItemDonation")}
           >
             <View style={[styles.gridIcon, { backgroundColor: "#EDE9FE" }]}>
-              <Ionicons name="cash-outline" size={22} color="#7C3AED" />
+              <Ionicons name="cube-outline" size={22} color="#7C3AED" />
             </View>
             <Text style={styles.gridTitle}>Donate Items</Text>
             <Text style={styles.gridDesc}>
@@ -112,6 +111,19 @@ export default function DonorHubScreen({ navigation }) {
             </Text>
           </TouchableOpacity>
 
+          {/* Track Delivery */}
+          <TouchableOpacity
+            style={styles.gridCard}
+            onPress={() => navigation.navigate("TrackDonation", { donorId })}
+          >
+            <View style={[styles.gridIcon,{backgroundColor:"#DBEAFE"}]}>
+              <Ionicons name="navigate" size={22} color="#2563EB"/>
+            </View>
+            <Text style={styles.gridTitle}>Track Delivery</Text>
+            <Text style={styles.gridDesc}>Live volunteer tracking</Text>
+          </TouchableOpacity>
+
+          {/* Donation History */}
           <TouchableOpacity
             style={styles.gridCard}
             onPress={() =>
@@ -126,30 +138,26 @@ export default function DonorHubScreen({ navigation }) {
               Track your past contributions
             </Text>
           </TouchableOpacity>
+
+          {/* My Profile */}
+          <TouchableOpacity
+            style={styles.gridCard}
+            onPress={() =>
+              navigation.navigate("DonorProfile", { donorId })
+            }
+          >
+            <View style={[styles.gridIcon,{backgroundColor:"#E0F2FE"}]}>
+              <Ionicons name="person-outline" size={22} color="#0284C7"/>
+            </View>
+            <Text style={styles.gridTitle}>My Profile</Text>
+            <Text style={styles.gridDesc}>
+              Manage your personal details
+            </Text>
+          </TouchableOpacity>
+
         </View>
 
-        {/* Profile */}
-        <TouchableOpacity
-          style={styles.profileCard}
-          onPress={() =>
-            navigation.navigate("DonorProfile", { donorId })
-          }
-        >
-          <View style={styles.profileLeft}>
-            <View style={styles.iconCircle}>
-              <Ionicons name="person-outline" size={20} color="#7C3AED" />
-            </View>
-            <View>
-              <Text style={styles.profileTitle}>My Profile</Text>
-              <Text style={styles.profileDesc}>
-                Manage your personal details
-              </Text>
-            </View>
-          </View>
-          <Ionicons name="chevron-forward" size={18} color="#9CA3AF" />
-        </TouchableOpacity>
-
-        {/* Info */}
+        {/* INFO */}
         <View style={styles.infoBox}>
           <Ionicons name="bulb-outline" size={20} color="#7C3AED" />
           <Text style={styles.infoText}>
@@ -167,156 +175,83 @@ export default function DonorHubScreen({ navigation }) {
 const PURPLE = "#7C3AED";
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#F9FAFB",
-    paddingHorizontal: 16,
+  container:{flex:1,backgroundColor:"#F9FAFB",paddingHorizontal:16},
+  loading:{flex:1,justifyContent:"center",alignItems:"center"},
+
+  header:{
+    flexDirection:"row",
+    alignItems:"center",
+    justifyContent:"space-between",
+    marginVertical:14,
   },
-  loading: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
+
+  headerTitle:{fontSize:16,fontWeight:"700"},
+
+  heroCard:{height:180,borderRadius:18,marginBottom:20,overflow:"hidden"},
+  heroOverlay:{
+    flex:1,padding:18,justifyContent:"flex-end",
+    backgroundColor:"rgba(0,0,0,0.45)"
   },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginVertical: 14,
+
+  heroTag:{color:"#E9D5FF",fontSize:12},
+  heroTitle:{color:"#fff",fontSize:22,fontWeight:"800",marginTop:6},
+  heroDesc:{color:"#E5E7EB",marginTop:4},
+
+  sectionTitle:{fontSize:18,fontWeight:"800",marginBottom:12},
+
+  donateCard:{
+    backgroundColor:"#fff",borderRadius:16,padding:14,
+    flexDirection:"row",justifyContent:"space-between",
+    alignItems:"center",marginBottom:16,
   },
-  headerTitle: {
-    fontSize: 16,
-    fontWeight: "700",
+
+  donateLeft:{flexDirection:"row",alignItems:"center"},
+
+  iconCircle:{
+    width:42,height:42,borderRadius:21,backgroundColor:"#EDE9FE",
+    alignItems:"center",justifyContent:"center",marginRight:12,
   },
-  heroCard: {
-    height: 180,
-    borderRadius: 18,
-    marginBottom: 20,
-    overflow: "hidden",
+
+  donateTitle:{fontWeight:"700"},
+  donateDesc:{fontSize:12,color:"#6B7280"},
+
+  donateBtn:{
+    backgroundColor:PURPLE,paddingHorizontal:16,
+    paddingVertical:8,borderRadius:20,
   },
-  heroOverlay: {
-    flex: 1,
-    padding: 18,
-    justifyContent: "flex-end",
-    backgroundColor: "rgba(0,0,0,0.45)",
+
+  donateBtnText:{color:"#fff",fontWeight:"700"},
+
+  grid:{
+    flexDirection:"row",
+    justifyContent:"space-between",
+    flexWrap:"wrap",
+    marginBottom:16
   },
-  heroTag: {
-    color: "#E9D5FF",
-    fontSize: 12,
+
+  gridCard:{
+    width:"48%",
+    backgroundColor:"#fff",
+    borderRadius:16,
+    padding:14,
+    marginBottom:14
   },
-  heroTitle: {
-    color: "#fff",
-    fontSize: 22,
-    fontWeight: "800",
-    marginTop: 6,
+
+  gridIcon:{
+    width:38,height:38,borderRadius:12,
+    alignItems:"center",justifyContent:"center",
+    marginBottom:8
   },
-  heroDesc: {
-    color: "#E5E7EB",
-    marginTop: 4,
+
+  gridTitle:{fontWeight:"700"},
+  gridDesc:{fontSize:12,color:"#6B7280"},
+
+  infoBox:{
+    backgroundColor:"#F3E8FF",borderRadius:16,
+    padding:14,flexDirection:"row",alignItems:"center",
+    marginBottom:16,
   },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: "800",
-    marginBottom: 12,
-  },
-  donateCard: {
-    backgroundColor: "#fff",
-    borderRadius: 16,
-    padding: 14,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 16,
-  },
-  donateLeft: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  iconCircle: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
-    backgroundColor: "#EDE9FE",
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: 12,
-  },
-  donateTitle: {
-    fontWeight: "700",
-  },
-  donateDesc: {
-    fontSize: 12,
-    color: "#6B7280",
-  },
-  donateBtn: {
-    backgroundColor: PURPLE,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-  },
-  donateBtnText: {
-    color: "#fff",
-    fontWeight: "700",
-  },
-  grid: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: 16,
-  },
-  gridCard: {
-    width: "48%",
-    backgroundColor: "#fff",
-    borderRadius: 16,
-    padding: 14,
-  },
-  gridIcon: {
-    width: 38,
-    height: 38,
-    borderRadius: 12,
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 8,
-  },
-  gridTitle: {
-    fontWeight: "700",
-  },
-  gridDesc: {
-    fontSize: 12,
-    color: "#6B7280",
-  },
-  profileCard: {
-    backgroundColor: "#fff",
-    borderRadius: 16,
-    padding: 14,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 16,
-  },
-  profileLeft: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  profileTitle: {
-    fontWeight: "700",
-  },
-  profileDesc: {
-    fontSize: 12,
-    color: "#6B7280",
-  },
-  infoBox: {
-    backgroundColor: "#F3E8FF",
-    borderRadius: 16,
-    padding: 14,
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 16,
-  },
-  infoText: {
-    marginLeft: 10,
-    color: "#4C1D95",
-    flex: 1,
-  },
-  bold: {
-    fontWeight: "800",
-  },
+
+  infoText:{marginLeft:10,color:"#4C1D95",flex:1},
+  bold:{fontWeight:"800"},
 });

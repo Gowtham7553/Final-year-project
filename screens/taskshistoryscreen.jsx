@@ -1,44 +1,96 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
   TouchableOpacity,
+  Alert,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
+const BASE_URL = "http://172.18.41.124:5000";
 
 export default function TasksHistoryScreen({ navigation }) {
-  const history = [
-    {
-      id: 1,
-      title: "Monthly Grocery Supply",
-      donor: "Global Food Initiative",
-      date: "Nov 14, 2024",
-      qty: "12 Boxes",
-    },
-    {
-      id: 2,
-      title: "Educational Kits",
-      donor: "Sunshine Foundation",
-      date: "Oct 28, 2024",
-      qty: "45 Kits",
-    },
-    {
-      id: 3,
-      title: "Winter Clothing Bundles",
-      donor: "Community Drive",
-      date: "Oct 15, 2024",
-      qty: "30 Bundles",
-    },
-    {
-      id: 4,
-      title: "Fresh Produce Delivery",
-      donor: "Local Farmers Market",
-      date: "Sep 30, 2024",
-      qty: "Bulk Order",
-    },
-  ];
+
+  const [history, setHistory] = useState([]);
+  const [volunteerId, setVolunteerId] = useState("");
+  const [total, setTotal] = useState(0);
+
+  /* ================= GET VOLUNTEER ================= */
+  useEffect(() => {
+    const getVolunteer = async () => {
+      try {
+        const stored = await AsyncStorage.getItem("volunteer");
+
+        console.log("Stored volunteer:", stored);
+
+        if (!stored) {
+          Alert.alert("Volunteer not logged in");
+          return;
+        }
+
+        const parsed = JSON.parse(stored);
+        console.log("Volunteer parsed:", parsed);
+
+        if (!parsed?.volunteerId) {
+          Alert.alert("Volunteer ID missing");
+          return;
+        }
+
+        setVolunteerId(parsed.volunteerId);
+
+      } catch (err) {
+        console.log("Volunteer parse error:", err);
+        Alert.alert("Login data error");
+      }
+    };
+
+    getVolunteer();
+  }, []);
+
+  /* ================= FETCH HISTORY ================= */
+  useEffect(() => {
+    if (volunteerId) fetchHistory();
+  }, [volunteerId]);
+
+  const fetchHistory = async () => {
+    try {
+      console.log("Fetching history for:", volunteerId);
+
+      const res = await fetch(
+        `${BASE_URL}/api/donations/history/${volunteerId}`
+      );
+
+      // 🔥 SAFE JSON PARSE (prevents < html crash)
+      const text = await res.text();
+      console.log("Raw history response:", text);
+
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch {
+        console.log("❌ Not JSON response");
+        Alert.alert("Server error: check backend running");
+        return;
+      }
+
+      console.log("Parsed history:", data);
+
+      if (!res.ok) {
+        Alert.alert("Error", data.message || "Failed to load history");
+        return;
+      }
+
+      setHistory(data || []);
+      setTotal(data?.length || 0);
+
+    } catch (err) {
+      console.log("History error:", err);
+      Alert.alert("Server connection error");
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -55,7 +107,7 @@ export default function TasksHistoryScreen({ navigation }) {
         {/* Stats Card */}
         <View style={styles.statsCard}>
           <Text style={styles.statsLabel}>TOTAL TASKS COMPLETED</Text>
-          <Text style={styles.statsValue}>112</Text>
+          <Text style={styles.statsValue}>{total}</Text>
           <Text style={styles.statsSub}>
             Supporting our children’s future
           </Text>
@@ -65,15 +117,25 @@ export default function TasksHistoryScreen({ navigation }) {
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Past Tasks</Text>
           <View style={styles.yearBox}>
-            <Text style={styles.yearText}>2024</Text>
+            <Text style={styles.yearText}>{new Date().getFullYear()}</Text>
           </View>
         </View>
 
-        {/* History List */}
+        {/* EMPTY */}
+        {history.length === 0 && (
+          <Text style={{ textAlign: "center", marginTop: 40, color: "gray" }}>
+            No completed deliveries yet
+          </Text>
+        )}
+
+        {/* HISTORY LIST */}
         {history.map((item) => (
-          <View key={item.id} style={styles.card}>
+          <View key={item._id} style={styles.card}>
             <View style={styles.cardHeader}>
-              <Text style={styles.cardTitle}>{item.title}</Text>
+              <Text style={styles.cardTitle}>
+                {item.items?.[0]?.category || "Donation"}
+              </Text>
+
               <View style={styles.status}>
                 <Ionicons
                   name="checkmark-circle"
@@ -84,18 +146,25 @@ export default function TasksHistoryScreen({ navigation }) {
               </View>
             </View>
 
+            {/* Home name */}
             <Text style={styles.donor}>
-              <Ionicons name="person-outline" size={12} /> Donor:{" "}
-              {item.donor}
+              <Ionicons name="home-outline" size={12} /> Home:{" "}
+              {item.homeId?.homeName || "Home"}
             </Text>
 
             <View style={styles.meta}>
               <View style={styles.metaItem}>
                 <Ionicons name="calendar-outline" size={14} />
-                <Text style={styles.metaText}>{item.date}</Text>
+                <Text style={styles.metaText}>
+                  {item.updatedAt
+                    ? new Date(item.updatedAt).toDateString()
+                    : "Date"}
+                </Text>
               </View>
 
-              <Text style={styles.qty}>{item.qty}</Text>
+              <Text style={styles.qty}>
+                {item.items?.[0]?.quantity || "1"}
+              </Text>
             </View>
           </View>
         ))}
@@ -109,135 +178,90 @@ export default function TasksHistoryScreen({ navigation }) {
 const PURPLE = "#7C3AED";
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#F9FAFB",
-    paddingHorizontal: 16,
+  container: { flex:1, backgroundColor:"#F9FAFB", paddingHorizontal:16 },
+
+  header:{
+    flexDirection:"row",
+    alignItems:"center",
+    justifyContent:"space-between",
+    marginVertical:14
   },
 
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginVertical: 14,
+  headerTitle:{ fontSize:16, fontWeight:"700" },
+
+  statsCard:{
+    backgroundColor:PURPLE,
+    borderRadius:18,
+    padding:20,
+    alignItems:"center",
+    marginBottom:24
   },
 
-  headerTitle: {
-    fontSize: 16,
-    fontWeight: "700",
+  statsLabel:{ color:"#E9D5FF", fontSize:12 },
+  statsValue:{ fontSize:36, fontWeight:"800", color:"#fff" },
+  statsSub:{ color:"#EDE9FE", marginTop:4 },
+
+  sectionHeader:{
+    flexDirection:"row",
+    justifyContent:"space-between",
+    alignItems:"center",
+    marginBottom:12
   },
 
-  statsCard: {
-    backgroundColor: PURPLE,
-    borderRadius: 18,
-    padding: 20,
-    alignItems: "center",
-    marginBottom: 24,
+  sectionTitle:{ fontSize:16, fontWeight:"800" },
+
+  yearBox:{
+    backgroundColor:"#EDE9FE",
+    paddingHorizontal:12,
+    paddingVertical:4,
+    borderRadius:12
   },
 
-  statsLabel: {
-    color: "#E9D5FF",
-    fontSize: 12,
-    marginBottom: 4,
+  yearText:{ color:PURPLE, fontWeight:"700", fontSize:12 },
+
+  card:{
+    backgroundColor:"#fff",
+    borderRadius:16,
+    padding:14,
+    marginBottom:12
   },
 
-  statsValue: {
-    fontSize: 36,
-    fontWeight: "800",
-    color: "#fff",
+  cardHeader:{
+    flexDirection:"row",
+    justifyContent:"space-between",
+    alignItems:"center",
+    marginBottom:6
   },
 
-  statsSub: {
-    color: "#EDE9FE",
-    marginTop: 4,
+  cardTitle:{ fontWeight:"700", fontSize:14 },
+
+  status:{
+    flexDirection:"row",
+    alignItems:"center",
+    backgroundColor:"#DCFCE7",
+    paddingHorizontal:8,
+    paddingVertical:4,
+    borderRadius:12
   },
 
-  sectionHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 12,
+  statusText:{
+    marginLeft:4,
+    fontSize:11,
+    fontWeight:"700",
+    color:"#15803D"
   },
 
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: "800",
+  donor:{ fontSize:12, color:"#6B7280", marginBottom:8 },
+
+  meta:{
+    flexDirection:"row",
+    justifyContent:"space-between",
+    alignItems:"center"
   },
 
-  yearBox: {
-    backgroundColor: "#EDE9FE",
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 12,
-  },
+  metaItem:{ flexDirection:"row", alignItems:"center" },
 
-  yearText: {
-    color: PURPLE,
-    fontWeight: "700",
-    fontSize: 12,
-  },
+  metaText:{ marginLeft:6, fontSize:12, color:"#6B7280" },
 
-  card: {
-    backgroundColor: "#fff",
-    borderRadius: 16,
-    padding: 14,
-    marginBottom: 12,
-  },
-
-  cardHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 6,
-  },
-
-  cardTitle: {
-    fontWeight: "700",
-    fontSize: 14,
-  },
-
-  status: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#DCFCE7",
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
-  },
-
-  statusText: {
-    marginLeft: 4,
-    fontSize: 11,
-    fontWeight: "700",
-    color: "#15803D",
-  },
-
-  donor: {
-    fontSize: 12,
-    color: "#6B7280",
-    marginBottom: 8,
-  },
-
-  meta: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-
-  metaItem: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-
-  metaText: {
-    marginLeft: 6,
-    fontSize: 12,
-    color: "#6B7280",
-  },
-
-  qty: {
-    color: PURPLE,
-    fontWeight: "700",
-    fontSize: 12,
-  },
+  qty:{ color:PURPLE, fontWeight:"700", fontSize:12 }
 });

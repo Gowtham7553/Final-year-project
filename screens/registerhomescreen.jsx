@@ -1,14 +1,15 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View, Text, StyleSheet, TextInput,
   TouchableOpacity, ScrollView, Alert, Image
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
+import * as Location from "expo-location";
 
-const BASE_URL = "http://10.172.162.124:5000";
+const BASE_URL = "http://172.18.41.124:5000";
 
-export default function RegisterHomeScreen({ navigation }) {
+export default function RegisterHomeScreen({ navigation, route }) {
 
   const [homeName,setHomeName]=useState("");
   const [regNo,setRegNo]=useState("");
@@ -25,6 +26,20 @@ export default function RegisterHomeScreen({ navigation }) {
 
   const [image,setImage]=useState(null);
 
+  // 📍 location states
+  const [latitude,setLatitude]=useState("");
+  const [longitude,setLongitude]=useState("");
+  const [fullAddress,setFullAddress]=useState("");
+
+  /* ================= RECEIVE LOCATION FROM MAP ================= */
+  useEffect(()=>{
+    if(route?.params?.pickedAddress){
+      setFullAddress(route.params.pickedAddress);
+      setLatitude(route.params.lat);
+      setLongitude(route.params.lng);
+    }
+  },[route?.params]);
+
   /* ================= IMAGE PICK ================= */
   const pickImage = async()=>{
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -37,11 +52,49 @@ export default function RegisterHomeScreen({ navigation }) {
     }
   };
 
+  /* ================= CURRENT LOCATION ================= */
+  const getCurrentLocation = async()=>{
+    try{
+      let { status } = await Location.requestForegroundPermissionsAsync();
+
+      if(status!=="granted"){
+        Alert.alert("Allow location permission");
+        return;
+      }
+
+      let loc = await Location.getCurrentPositionAsync({
+        accuracy: Location.Accuracy.Highest,
+      });
+
+      const { latitude, longitude } = loc.coords;
+
+      setLatitude(latitude);
+      setLongitude(longitude);
+
+      const address = await Location.reverseGeocodeAsync({latitude,longitude});
+
+      if(address.length>0){
+        const place = `${address[0].name||""}, ${address[0].street||""}, ${address[0].city||""}`;
+        setFullAddress(place);
+      }else{
+        setFullAddress(`${latitude}, ${longitude}`);
+      }
+
+    }catch{
+      Alert.alert("Enable GPS & Internet");
+    }
+  };
+
   /* ================= REGISTER ================= */
   const handleSubmit = async()=>{
 
     if(!homeName || !email || !password){
-      Alert.alert("Error","Fill required fields");
+      Alert.alert("Fill required fields");
+      return;
+    }
+
+    if(!latitude || !longitude){
+      Alert.alert("Please select home location");
       return;
     }
 
@@ -59,6 +112,11 @@ export default function RegisterHomeScreen({ navigation }) {
     formData.append("street",street);
     formData.append("city",city);
     formData.append("zipCode",zip);
+
+    // 📍 LOCATION SAVE
+    formData.append("latitude",latitude);
+    formData.append("longitude",longitude);
+    formData.append("fullAddress",fullAddress);
 
     if(image){
       formData.append("image",{
@@ -82,11 +140,9 @@ export default function RegisterHomeScreen({ navigation }) {
         return;
       }
 
-      Alert.alert("Success","Home Registered");
+      Alert.alert("Home Registered Successfully");
 
-      navigation.replace("HomeProfile",{
-        homeId:data.homeId
-      });
+      navigation.replace("HomeProfile",{ homeId:data.homeId });
 
     }catch{
       Alert.alert("Server error");
@@ -110,7 +166,7 @@ export default function RegisterHomeScreen({ navigation }) {
         Register your children's home to receive support and volunteers.
       </Text>
 
-      {/* PROFILE IMAGE */}
+      {/* IMAGE */}
       <TouchableOpacity style={styles.imageBox} onPress={pickImage}>
         {image ?
           <Image source={{uri:image}} style={styles.image}/> :
@@ -121,26 +177,18 @@ export default function RegisterHomeScreen({ navigation }) {
 
       {/* ORGANIZATION */}
       <Text style={styles.section}>Organization Details</Text>
-
       <TextInput style={styles.input} placeholder="Home Name" value={homeName} onChangeText={setHomeName}/>
       <TextInput style={styles.input} placeholder="Registration Number" value={regNo} onChangeText={setRegNo}/>
 
       {/* CONTACT */}
       <Text style={styles.section}>Contact Information</Text>
-
       <TextInput style={styles.input} placeholder="Representative Name" value={repName} onChangeText={setRepName}/>
       <TextInput style={styles.input} placeholder="Phone" value={phone} onChangeText={setPhone}/>
       <TextInput style={styles.input} placeholder="Email" value={email} onChangeText={setEmail}/>
 
       {/* PASSWORD */}
       <Text style={styles.section}>Security</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Create Password"
-        secureTextEntry
-        value={password}
-        onChangeText={setPassword}
-      />
+      <TextInput style={styles.input} placeholder="Create Password" secureTextEntry value={password} onChangeText={setPassword}/>
 
       {/* ABOUT */}
       <Text style={styles.section}>About Home</Text>
@@ -163,6 +211,31 @@ export default function RegisterHomeScreen({ navigation }) {
       </View>
 
       <TextInput style={styles.input} placeholder="Current Capacity (Children)" value={capacity} onChangeText={setCapacity}/>
+
+      {/* MAP ADDRESS */}
+      <TextInput
+        style={styles.input}
+        placeholder="Selected Map Address"
+        value={fullAddress}
+        onChangeText={setFullAddress}
+      />
+
+      <TouchableOpacity style={styles.locBtn} onPress={getCurrentLocation}>
+        <Ionicons name="locate" size={18} color="#7C3AED"/>
+        <Text style={styles.locText}>Use Current Location</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        style={[styles.locBtn,{backgroundColor:"#E0E7FF"}]}
+        onPress={()=>navigation.navigate("MapPicker",{
+          returnScreen:"RegisterHome"
+        })}
+      >
+        <Ionicons name="map" size={18} color="#4F46E5"/>
+        <Text style={[styles.locText,{color:"#4F46E5"}]}>
+          Select Location On Map
+        </Text>
+      </TouchableOpacity>
 
       {/* SUBMIT */}
       <TouchableOpacity style={styles.btn} onPress={handleSubmit}>
@@ -188,30 +261,13 @@ subtitle:{color:"#6B7280",marginBottom:20},
 
 section:{fontWeight:"700",marginTop:20,marginBottom:10},
 
-imageBox:{
-height:120,width:120,borderRadius:60,
-backgroundColor:"#eee",
-alignSelf:"center",
-justifyContent:"center",
-alignItems:"center",
-marginBottom:20
-},
+imageBox:{height:120,width:120,borderRadius:60,backgroundColor:"#eee",alignSelf:"center",justifyContent:"center",alignItems:"center",marginBottom:20},
 image:{height:120,width:120,borderRadius:60},
 
-input:{
-backgroundColor:"#fff",
-padding:14,
-borderRadius:12,
-marginBottom:12,
-borderWidth:1,
-borderColor:"#E5E7EB"
-},
+input:{backgroundColor:"#fff",padding:14,borderRadius:12,marginBottom:12,borderWidth:1,borderColor:"#E5E7EB"},
 
-btn:{
-backgroundColor:PURPLE,
-padding:16,
-borderRadius:30,
-alignItems:"center",
-marginTop:20
-}
+locBtn:{flexDirection:"row",alignItems:"center",justifyContent:"center",backgroundColor:"#F3E8FF",padding:14,borderRadius:12,marginTop:10},
+locText:{color:PURPLE,fontWeight:"700",marginLeft:6},
+
+btn:{backgroundColor:PURPLE,padding:16,borderRadius:30,alignItems:"center",marginTop:20}
 });

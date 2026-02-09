@@ -10,7 +10,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 
-const BASE_URL = "http://10.172.162.124:5000";
+const BASE_URL = "http://172.18.41.124:5000";
  // SERVER IP
 
 export default function DonateScreen({ navigation, route }) {

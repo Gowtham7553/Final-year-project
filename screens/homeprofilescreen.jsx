@@ -10,19 +10,21 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import MapView, { Marker } from "react-native-maps";
 
-const BASE_URL = "http://10.172.162.124:5000";
+const BASE_URL = "http://172.18.41.124:5000";
 
 export default function HomeProfileScreen({ navigation, route }) {
 
   const [homeId, setHomeId] = useState(route?.params?.homeId);
   const [home, setHome] = useState(null);
   const [loading, setLoading] = useState(true);
-
-  // ⭐ about read more toggle
   const [expanded, setExpanded] = useState(false);
 
-  /* GET HOME ID */
+  // 🚚 active delivery
+  const [activeDonation, setActiveDonation] = useState(null);
+
+  /* ================= GET HOME ID ================= */
   useEffect(() => {
     const getStoredHome = async () => {
       if (!homeId) {
@@ -36,7 +38,7 @@ export default function HomeProfileScreen({ navigation, route }) {
     getStoredHome();
   }, []);
 
-  /* FETCH PROFILE */
+  /* ================= FETCH HOME PROFILE ================= */
   useEffect(() => {
     if (!homeId) return;
 
@@ -51,14 +53,40 @@ export default function HomeProfileScreen({ navigation, route }) {
         }
 
         setHome(data);
-      } catch (err) {
-        Alert.alert("Error", "Server not reachable");
+      } catch {
+        Alert.alert("Server not reachable");
       } finally {
         setLoading(false);
       }
     };
 
     fetchProfile();
+  }, [homeId]);
+
+  /* ================= FETCH ACTIVE DELIVERY ================= */
+  useEffect(() => {
+    if (!homeId) return;
+
+    const fetchDelivery = async () => {
+      try {
+        const res = await fetch(`${BASE_URL}/api/donations/pending`);
+        const data = await res.json();
+
+        const delivery = data.find(
+          (d) => d.homeId?._id === homeId && d.status !== "Delivered"
+        );
+
+        if (delivery) setActiveDonation(delivery);
+
+      } catch (err) {
+        console.log("Delivery fetch error", err);
+      }
+    };
+
+    fetchDelivery();
+    const interval = setInterval(fetchDelivery, 5000);
+    return () => clearInterval(interval);
+
   }, [homeId]);
 
   if (loading) {
@@ -77,23 +105,19 @@ export default function HomeProfileScreen({ navigation, route }) {
     );
   }
 
-  /* ================= ABOUT LOGIC ================= */
+  /* ================= ABOUT TEXT ================= */
   const aboutText = home.about || "No description added";
   const words = aboutText.split(" ");
   const isLong = words.length > 30;
-
   const shortText = words.slice(0, 30).join(" ");
 
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
 
-      {/* Header */}
+      {/* HEADER */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() =>
-          navigation.reset({
-            index: 0,
-            routes: [{ name: "Login" }],
-          })
+          navigation.reset({ index:0, routes:[{name:"Login"}] })
         }>
           <Ionicons name="arrow-back" size={22} />
         </TouchableOpacity>
@@ -105,7 +129,7 @@ export default function HomeProfileScreen({ navigation, route }) {
         </TouchableOpacity>
       </View>
 
-      {/* HERO IMAGE */}
+      {/* IMAGE */}
       <Image
         source={
           home?.image
@@ -115,10 +139,9 @@ export default function HomeProfileScreen({ navigation, route }) {
         style={styles.cover}
       />
 
-      {/* Name */}
       <Text style={styles.name}>{home.homeName}</Text>
 
-      {/* Badges */}
+      {/* BADGES */}
       <View style={styles.badges}>
         <View style={styles.badge}>
           <Ionicons name="shield-checkmark" size={14} color="#7C3AED" />
@@ -127,13 +150,11 @@ export default function HomeProfileScreen({ navigation, route }) {
 
         <View style={styles.badge}>
           <Ionicons name="location-outline" size={14} color="#7C3AED" />
-          <Text style={styles.badgeText}>
-            {home.address?.city || "City"}
-          </Text>
+          <Text style={styles.badgeText}>{home.address?.city || "City"}</Text>
         </View>
       </View>
 
-      {/* Submit Request */}
+      {/* SUBMIT REQUEST */}
       <TouchableOpacity
         style={styles.primaryBtn}
         onPress={() => navigation.navigate("SubmitRequest",{homeId})}
@@ -141,82 +162,109 @@ export default function HomeProfileScreen({ navigation, route }) {
         <Text style={styles.primaryBtnText}>Submit Request</Text>
       </TouchableOpacity>
 
-      {/* ================= STATS (VOLUNTEERS REMOVED) ================= */}
-      <View style={styles.stats}>
-        <View style={styles.statCard}>
-          <Ionicons name="happy-outline" size={22} color="#F97316" />
-          <Text style={styles.statNumber}>{home.capacity || 0}</Text>
-          <Text style={styles.statLabel}>Children</Text>
-        </View>
+      {/* 🚚 TRACK BUTTON */}
+      {activeDonation && activeDonation.volunteerId && (
+        <TouchableOpacity
+          style={styles.trackBtn}
+          onPress={()=>navigation.navigate("LiveTracking",{
+            donationId: activeDonation._id
+          })}
+        >
+          <Ionicons name="navigate" size={18} color="#fff"/>
+          <Text style={styles.trackText}>Track Volunteer Live</Text>
+        </TouchableOpacity>
+      )}
 
-        <View style={styles.statCard}>
-          <Ionicons name="home-outline" size={22} color="#22C55E" />
-          <Text style={styles.statNumber}>
-            {new Date(home.createdAt).getFullYear()}
+      {/* ABOUT */}
+      <Text style={styles.sectionTitle}>About</Text>
+      <Text style={styles.aboutText}>
+        {expanded || !isLong ? aboutText : shortText + "..."}
+      </Text>
+
+      {isLong && (
+        <TouchableOpacity onPress={()=>setExpanded(!expanded)}>
+          <Text style={{color:"#7C3AED",fontWeight:"700",marginBottom:10}}>
+            {expanded ? "Show less" : "Read more"}
           </Text>
-          <Text style={styles.statLabel}>Established</Text>
-        </View>
-      </View>
+        </TouchableOpacity>
+      )}
 
-      {/* ================= ABOUT CARD ================= */}
-      <Text style={styles.sectionTitle}>About Us</Text>
-
-      <View style={styles.aboutCard}>
-        <Text style={styles.aboutCardText}>
-          {expanded || !isLong ? aboutText : shortText + "..."}
-        </Text>
-
-        {/* SHOW READ MORE ONLY IF >30 WORDS */}
-        {isLong && (
-          <TouchableOpacity onPress={() => setExpanded(!expanded)}>
-            <Text style={styles.readMore}>
-              {expanded ? "Show less" : "Read more"}
-            </Text>
-          </TouchableOpacity>
-        )}
-      </View>
-
-      {/* Registration */}
+      {/* REGISTRATION */}
       <Text style={styles.sectionTitle}>Registration Details</Text>
       <Text style={styles.aboutText}>Reg No: {home.registrationNumber}</Text>
       <Text style={styles.aboutText}>Representative: {home.representativeName}</Text>
 
-      {/* Contact */}
+      {/* CONTACT */}
       <Text style={styles.sectionTitle}>Contact Info</Text>
       <Text style={styles.aboutText}>📞 {home.phone}</Text>
       <Text style={styles.aboutText}>📧 {home.email}</Text>
 
-      {/* Address */}
-      <Text style={styles.sectionTitle}>Location</Text>
-      <Text style={styles.aboutText}>
-        {home.address?.street}, {home.address?.city} - {home.address?.zipCode}
-      </Text>
+      {/* MAP */}
+      <Text style={styles.sectionTitle}>Home Location</Text>
 
-      <View style={{ height: 40 }} />
+      <View style={styles.mapBox}>
+        {home.location?.latitude ? (
+          <MapView
+            style={{ flex: 1 }}
+            initialRegion={{
+              latitude: home.location.latitude,
+              longitude: home.location.longitude,
+              latitudeDelta: 0.01,
+              longitudeDelta: 0.01,
+            }}
+            scrollEnabled={false}
+            zoomEnabled={false}
+          >
+            <Marker
+              coordinate={{
+                latitude: home.location.latitude,
+                longitude: home.location.longitude,
+              }}
+            />
+          </MapView>
+        ) : (
+          <View style={{flex:1,justifyContent:"center",alignItems:"center"}}>
+            <Text>No location set</Text>
+          </View>
+        )}
+      </View>
+
+      <Text style={styles.aboutText}>{home.fullAddress}</Text>
+
+      <View style={{height:40}}/>
     </ScrollView>
   );
 }
 
-const PURPLE = "#7C3AED";
+const PURPLE="#7C3AED";
 
-const styles = StyleSheet.create({
-  container:{flex:1,backgroundColor:"#F9FAFB",paddingHorizontal:20},
-  header:{flexDirection:"row",justifyContent:"space-between",alignItems:"center",marginVertical:14},
-  headerTitle:{fontSize:16,fontWeight:"700"},
-  cover:{width:"100%",height:180,borderRadius:18,marginBottom:14},
-  name:{fontSize:20,fontWeight:"800",marginBottom:8},
-  badges:{flexDirection:"row",gap:10,marginBottom:16},
-  badge:{flexDirection:"row",alignItems:"center",gap:6,backgroundColor:"#EDE9FE",paddingHorizontal:10,paddingVertical:4,borderRadius:20},
-  badgeText:{fontSize:12,color:PURPLE,fontWeight:"600"},
-  primaryBtn:{backgroundColor:PURPLE,padding:14,borderRadius:24,alignItems:"center",marginBottom:20},
-  primaryBtnText:{color:"#fff",fontWeight:"700"},
-  stats:{flexDirection:"row",gap:12,marginBottom:24},
-  statCard:{flex:1,backgroundColor:"#fff",borderRadius:16,padding:14,alignItems:"center"},
-  statNumber:{fontSize:18,fontWeight:"800",marginTop:6},
-  statLabel:{fontSize:12,color:"#6B7280"},
-  sectionTitle:{fontSize:18,fontWeight:"800",marginBottom:8},
-  aboutText:{color:"#6B7280",lineHeight:20,marginBottom:10},
-  aboutCard:{backgroundColor:"#F3F4F6",padding:16,borderRadius:14,marginBottom:18},
-  aboutCardText:{color:"#374151",lineHeight:20},
-  readMore:{color:"#7C3AED",fontWeight:"700",marginTop:6}
+const styles=StyleSheet.create({
+container:{flex:1,backgroundColor:"#F9FAFB",paddingHorizontal:20},
+header:{flexDirection:"row",justifyContent:"space-between",alignItems:"center",marginVertical:14},
+headerTitle:{fontSize:16,fontWeight:"700"},
+cover:{width:"100%",height:180,borderRadius:18,marginBottom:14},
+name:{fontSize:20,fontWeight:"800",marginBottom:8},
+
+badges:{flexDirection:"row",gap:10,marginBottom:16},
+badge:{flexDirection:"row",alignItems:"center",gap:6,backgroundColor:"#EDE9FE",paddingHorizontal:10,paddingVertical:4,borderRadius:20},
+badgeText:{fontSize:12,color:PURPLE,fontWeight:"600"},
+
+primaryBtn:{backgroundColor:PURPLE,padding:14,borderRadius:24,alignItems:"center",marginBottom:10},
+primaryBtnText:{color:"#fff",fontWeight:"700"},
+
+trackBtn:{
+backgroundColor:"#2563EB",
+padding:14,
+borderRadius:14,
+alignItems:"center",
+flexDirection:"row",
+justifyContent:"center",
+marginBottom:20
+},
+trackText:{color:"#fff",fontWeight:"800",marginLeft:8},
+
+sectionTitle:{fontSize:18,fontWeight:"800",marginBottom:6},
+aboutText:{color:"#6B7280",marginBottom:8},
+
+mapBox:{height:220,borderRadius:18,overflow:"hidden",marginBottom:10}
 });
