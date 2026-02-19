@@ -7,7 +7,7 @@ import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as ImagePicker from "expo-image-picker";
 
-const BASE_URL = "http://172.18.41.124:5000";
+const BASE_URL = "http://10.160.239.124:5000";
 
 export default function ProfileScreen({ navigation }) {
 

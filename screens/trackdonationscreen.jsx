@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { View, Text, StyleSheet, Alert } from "react-native";
 import MapView, { Marker } from "react-native-maps";
 
-const BASE_URL = "http://172.18.41.124:5000";
+const BASE_URL = "http://10.160.239.124:5000";
 
 export default function TrackDonationScreen({ route }) {
 

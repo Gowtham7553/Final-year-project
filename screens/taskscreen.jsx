@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   View,
   Text,
@@ -14,8 +14,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Linking from "expo-linking";
 import * as Location from "expo-location";
 
-
-const BASE_URL = "http://172.18.41.124:5000";
+const BASE_URL = "http://10.160.239.124:5000";
 
 export default function TasksScreen({ navigation }) {
 
@@ -27,7 +26,9 @@ export default function TasksScreen({ navigation }) {
   const [selectedDonation, setSelectedDonation] = useState(null);
   const [otp, setOtp] = useState("");
 
-  /* ================= GET VOLUNTEER ID ================= */
+  const trackingRef = useRef(null);
+
+  /* ================= GET VOLUNTEER ================= */
   useEffect(() => {
     const getVolunteer = async () => {
       const stored = await AsyncStorage.getItem("volunteer");
@@ -70,41 +71,75 @@ export default function TasksScreen({ navigation }) {
         return;
       }
 
-      Alert.alert("Accepted", "Delivery assigned to you\nOTP: " + data.otp);
+      Alert.alert("Accepted", "Go to donor location to pickup");
       fetchTasks();
     } catch {
       Alert.alert("Server error");
     }
   };
 
+  /* ================= START LIVE TRACKING ================= */
+  const startLiveTracking = async (donationId) => {
+
+    if (trackingRef.current) return;
+
+    let { status } = await Location.requestForegroundPermissionsAsync();
+    if (status !== "granted") {
+      Alert.alert("Allow location permission");
+      return;
+    }
+
+    trackingRef.current = setInterval(async () => {
+      try {
+        let loc = await Location.getCurrentPositionAsync({
+          accuracy: Location.Accuracy.High,
+        });
+
+        await fetch(`${BASE_URL}/api/donations/location/${donationId}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            latitude: loc.coords.latitude,
+            longitude: loc.coords.longitude,
+          }),
+        });
+
+        console.log("📍 Live location sent");
+      } catch (err) {
+        console.log("Location error");
+      }
+    }, 5000);
+  };
+
+  const stopTracking = () => {
+    if (trackingRef.current) {
+      clearInterval(trackingRef.current);
+      trackingRef.current = null;
+    }
+  };
+
   /* ================= MARK PICKED ================= */
   const markPicked = async (id) => {
-  try {
+    try {
+      await fetch(`${BASE_URL}/api/donations/pickup/${id}`, {
+        method: "PUT",
+      });
 
-    await fetch(`${BASE_URL}/api/donations/pickup/${id}`, {
-      method: "PUT",
-    });
+      startLiveTracking(id);
+      Alert.alert("Picked", "Now navigate to home");
+      fetchTasks();
+    } catch {
+      Alert.alert("Error updating");
+    }
+  };
 
-    // ⭐ START LIVE TRACKING HERE
-    startLiveTracking(id);
-
-    Alert.alert("Picked", "Now delivering to home");
-    fetchTasks();
-
-  } catch {
-    Alert.alert("Error updating");
-  }
-};
-
-
-  /* ================= OPEN OTP MODAL ================= */
+  /* ================= OTP ================= */
   const openOtpModal = (id) => {
     setSelectedDonation(id);
     setOtp("");
     setOtpModal(true);
   };
 
-  /* ================= VERIFY OTP ================= */
   const verifyOtp = async () => {
     try {
       const res = await fetch(
@@ -116,26 +151,59 @@ export default function TasksScreen({ navigation }) {
         }
       );
 
-      const data = await res.json();
-
       if (!res.ok) {
         Alert.alert("Wrong OTP");
         return;
       }
 
+      stopTracking();
       Alert.alert("Success", "Delivery Completed 🎉");
       setOtpModal(false);
       fetchTasks();
-
     } catch {
       Alert.alert("Server error");
     }
   };
 
-  /* ================= GOOGLE MAP ================= */
-  const openMaps = (pickup, drop) => {
-    const url = `https://www.google.com/maps/dir/?api=1&origin=${pickup}&destination=${drop}`;
-    Linking.openURL(url);
+  /* ================= GOOGLE MAP LOGIC (FIXED) ================= */
+  const openMaps = async (task) => {
+
+    let destination = "";
+
+    // BEFORE PICKUP → GO TO DONOR
+    if (task.status === "Pending" || task.status === "Accepted") {
+      destination = task.donorAddress;
+    }
+
+    // AFTER PICKED → GO TO HOME
+    if (task.status === "Picked") {
+      destination = task.homeAddress;
+    }
+
+    if (!destination) {
+      Alert.alert("No location available");
+      return;
+    }
+
+    try {
+      let { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== "granted") {
+        Alert.alert("Enable location permission");
+        return;
+      }
+
+      let loc = await Location.getCurrentPositionAsync({
+        accuracy: Location.Accuracy.High,
+      });
+
+      const origin = `${loc.coords.latitude},${loc.coords.longitude}`;
+      const url = `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${destination}&travelmode=driving`;
+
+      Linking.openURL(url);
+
+    } catch {
+      Alert.alert("Location error");
+    }
   };
 
   /* ================= FILTER ================= */
@@ -144,46 +212,9 @@ export default function TasksScreen({ navigation }) {
       ? tasks
       : tasks.filter((t) => t.status?.toLowerCase() === filter.toLowerCase());
 
-      const startLiveTracking = async (donationId) => {
-
-  // ask location permission
-  let { status } = await Location.requestForegroundPermissionsAsync();
-  if (status !== "granted") {
-    alert("Allow location permission");
-    return;
-  }
-
-  // send location every 5 seconds
-  setInterval(async () => {
-
-    try {
-      let loc = await Location.getCurrentPositionAsync({
-        accuracy: Location.Accuracy.High
-      });
-
-      await fetch(`${BASE_URL}/api/donations/location/${donationId}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          latitude: loc.coords.latitude,
-          longitude: loc.coords.longitude
-        })
-      });
-
-      console.log("📍 Live location sent");
-
-    } catch (err) {
-      console.log("Location error");
-    }
-
-  }, 5000); // every 5 seconds
-};
-
-
   return (
     <View style={styles.container}>
 
-      {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-back" size={22} />
@@ -192,7 +223,6 @@ export default function TasksScreen({ navigation }) {
         <View style={{ width: 22 }} />
       </View>
 
-      {/* Filters */}
       <View style={styles.filters}>
         {["All", "Pending", "Accepted", "Picked", "Delivered"].map((item) => {
           const active = filter === item;
@@ -202,12 +232,7 @@ export default function TasksScreen({ navigation }) {
               style={[styles.filterBtn, active && styles.filterActive]}
               onPress={() => setFilter(item)}
             >
-              <Text
-                style={[
-                  styles.filterText,
-                  active && styles.filterTextActive,
-                ]}
-              >
+              <Text style={[styles.filterText, active && styles.filterTextActive]}>
                 {item}
               </Text>
             </TouchableOpacity>
@@ -219,7 +244,6 @@ export default function TasksScreen({ navigation }) {
         {filteredTasks.map((task) => (
           <View key={task._id} style={styles.card}>
 
-            {/* Status */}
             <View style={styles.cardHeader}>
               <View style={styles.iconBox}>
                 <Ionicons name="cube-outline" size={20} color="#7C3AED" />
@@ -227,7 +251,6 @@ export default function TasksScreen({ navigation }) {
               <Text style={styles.status}>{task.status?.toUpperCase()}</Text>
             </View>
 
-            {/* Title */}
             <Text style={styles.title}>
               {task.items?.[0]?.category || "Donation Delivery"}
             </Text>
@@ -236,7 +259,6 @@ export default function TasksScreen({ navigation }) {
               {task.items?.[0]?.description || "Item delivery"}
             </Text>
 
-            {/* Quantity */}
             <View style={styles.metaItem}>
               <Ionicons name="cube-outline" size={14} />
               <Text style={styles.metaText}>
@@ -244,50 +266,31 @@ export default function TasksScreen({ navigation }) {
               </Text>
             </View>
 
-            {/* Pickup */}
             <View style={styles.metaItem}>
               <Ionicons name="arrow-up-circle-outline" size={14} />
-              <Text style={styles.metaText}>
-                Pickup: {task.donorAddress}
-              </Text>
+              <Text style={styles.metaText}>Pickup: {task.donorAddress}</Text>
             </View>
 
-            {/* Drop */}
             <View style={styles.metaItem}>
               <Ionicons name="location-outline" size={14} />
-              <Text style={styles.metaText}>
-                Drop: {task.homeAddress}
-              </Text>
+              <Text style={styles.metaText}>Drop: {task.homeAddress}</Text>
             </View>
 
-            {/* Phone */}
-            <View style={styles.metaItem}>
-              <Ionicons name="call-outline" size={14} />
-              <Text style={styles.metaText}>
-                {task.homeId?.phone || "No phone"}
-              </Text>
-            </View>
-
-            {/* MAP */}
+            {/* 🔥 MAP BUTTON FIXED */}
             <TouchableOpacity
               style={styles.mapBtn}
-              onPress={() => openMaps(task.donorAddress, task.homeAddress)}
+              onPress={() => openMaps(task)}
             >
               <Ionicons name="navigate" size={16} color="#fff" />
               <Text style={styles.mapText}>Navigate Route</Text>
             </TouchableOpacity>
 
-            {/* Accept */}
             {task.status === "Pending" && (
-              <TouchableOpacity
-                style={styles.acceptBtn}
-                onPress={() => acceptDelivery(task._id)}
-              >
+              <TouchableOpacity style={styles.acceptBtn} onPress={() => acceptDelivery(task._id)}>
                 <Text style={styles.btnText}>Accept Delivery</Text>
               </TouchableOpacity>
             )}
 
-            {/* Picked */}
             {task.status === "Accepted" && (
               <TouchableOpacity
                 style={[styles.acceptBtn,{backgroundColor:"#F59E0B"}]}
@@ -297,7 +300,6 @@ export default function TasksScreen({ navigation }) {
               </TouchableOpacity>
             )}
 
-            {/* Delivered */}
             {task.status === "Picked" && (
               <TouchableOpacity
                 style={[styles.acceptBtn,{backgroundColor:"#16A34A"}]}
@@ -309,7 +311,6 @@ export default function TasksScreen({ navigation }) {
 
           </View>
         ))}
-
         <View style={{ height: 40 }} />
       </ScrollView>
 
@@ -342,40 +343,29 @@ export default function TasksScreen({ navigation }) {
   );
 }
 
-const PURPLE = "#7C3AED";
+const PURPLE="#7C3AED";
 
-const styles = StyleSheet.create({
+const styles=StyleSheet.create({
 container:{flex:1,backgroundColor:"#F9FAFB",paddingHorizontal:16},
-
 header:{flexDirection:"row",alignItems:"center",justifyContent:"space-between",marginVertical:14},
 headerTitle:{fontSize:16,fontWeight:"700"},
-
 filters:{flexDirection:"row",flexWrap:"wrap",marginBottom:16},
-
 filterBtn:{paddingHorizontal:14,paddingVertical:8,borderRadius:20,backgroundColor:"#E5E7EB",marginRight:8,marginBottom:8},
 filterActive:{backgroundColor:"#EDE9FE"},
 filterText:{fontSize:12,fontWeight:"600",color:"#6B7280"},
 filterTextActive:{color:PURPLE},
-
 card:{backgroundColor:"#fff",borderRadius:16,padding:14,marginBottom:14},
-
 cardHeader:{flexDirection:"row",justifyContent:"space-between",alignItems:"center",marginBottom:8},
 iconBox:{width:36,height:36,borderRadius:10,backgroundColor:"#EDE9FE",alignItems:"center",justifyContent:"center"},
-
 status:{fontSize:11,fontWeight:"700",paddingHorizontal:10,paddingVertical:4,borderRadius:10,backgroundColor:"#EDE9FE",color:PURPLE},
-
 title:{fontWeight:"700",fontSize:15,marginBottom:4},
 desc:{fontSize:13,color:"#6B7280",marginBottom:10},
-
 metaItem:{flexDirection:"row",alignItems:"center",marginTop:4},
 metaText:{marginLeft:6,fontSize:12,color:"#6B7280"},
-
 acceptBtn:{backgroundColor:PURPLE,padding:12,borderRadius:12,marginTop:12,alignItems:"center"},
 btnText:{color:"#fff",fontWeight:"700"},
-
 mapBtn:{backgroundColor:"#2563EB",padding:10,borderRadius:10,marginTop:10,flexDirection:"row",justifyContent:"center",alignItems:"center"},
 mapText:{color:"#fff",fontWeight:"700",marginLeft:6},
-
 modalBg:{flex:1,backgroundColor:"rgba(0,0,0,0.5)",justifyContent:"center",alignItems:"center"},
 modalBox:{backgroundColor:"#fff",padding:20,borderRadius:20,width:"80%",alignItems:"center"},
 otpInput:{borderWidth:1,borderColor:"#ccc",width:"100%",padding:10,marginTop:10,borderRadius:10}

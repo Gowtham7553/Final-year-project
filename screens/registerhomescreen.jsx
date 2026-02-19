@@ -7,7 +7,7 @@ import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import * as Location from "expo-location";
 
-const BASE_URL = "http://172.18.41.124:5000";
+const BASE_URL = "http://10.160.239.124:5000";
 
 export default function RegisterHomeScreen({ navigation, route }) {
 

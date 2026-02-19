@@ -12,7 +12,7 @@ import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import MapView, { Marker } from "react-native-maps";
 
-const BASE_URL = "http://172.18.41.124:5000";
+const BASE_URL = "http://10.160.239.124:5000";
 
 export default function HomeProfileScreen({ navigation, route }) {
 
@@ -64,46 +64,38 @@ export default function HomeProfileScreen({ navigation, route }) {
   }, [homeId]);
 
   /* ================= FETCH ACTIVE DELIVERY ================= */
-  useEffect(() => {
-    if (!homeId) return;
+/* ================= FETCH ACTIVE DELIVERY ================= */
+useEffect(() => {
+  if (!homeId) return;
 
-    const fetchDelivery = async () => {
-      try {
-        const res = await fetch(`${BASE_URL}/api/donations/pending`);
-        const data = await res.json();
+  const fetchDelivery = async () => {
+    try {
+      const res = await fetch(`${BASE_URL}/api/donations/pending`);
+      const data = await res.json();
 
-        const delivery = data.find(
-          (d) => d.homeId?._id === homeId && d.status !== "Delivered"
-        );
+      // Only item donations + assigned volunteer + not delivered
+      const delivery = data.find(
+        (d) =>
+          d.homeId?._id === homeId &&
+          d.type === "items" &&
+          d.volunteerId &&
+          d.status !== "Delivered"
+      );
 
-        if (delivery) setActiveDonation(delivery);
+      setActiveDonation(delivery || null);
 
-      } catch (err) {
-        console.log("Delivery fetch error", err);
-      }
-    };
+    } catch (err) {
+      console.log("Delivery fetch error", err);
+      setActiveDonation(null);
+    }
+  };
 
-    fetchDelivery();
-    const interval = setInterval(fetchDelivery, 5000);
-    return () => clearInterval(interval);
+  fetchDelivery();
+  const interval = setInterval(fetchDelivery, 4000);
+  return () => clearInterval(interval);
 
-  }, [homeId]);
+}, [homeId]);
 
-  if (loading) {
-    return (
-      <View style={{ flex:1, justifyContent:"center", alignItems:"center" }}>
-        <Text>Loading profile...</Text>
-      </View>
-    );
-  }
-
-  if (!home) {
-    return (
-      <View style={{ flex:1, justifyContent:"center", alignItems:"center" }}>
-        <Text>No profile data</Text>
-      </View>
-    );
-  }
 
   /* ================= ABOUT TEXT ================= */
   const aboutText = home.about || "No description added";
@@ -162,18 +154,32 @@ export default function HomeProfileScreen({ navigation, route }) {
         <Text style={styles.primaryBtnText}>Submit Request</Text>
       </TouchableOpacity>
 
-      {/* 🚚 TRACK BUTTON */}
-      {activeDonation && activeDonation.volunteerId && (
-        <TouchableOpacity
-          style={styles.trackBtn}
-          onPress={()=>navigation.navigate("LiveTracking",{
-            donationId: activeDonation._id
-          })}
-        >
-          <Ionicons name="navigate" size={18} color="#fff"/>
-          <Text style={styles.trackText}>Track Volunteer Live</Text>
-        </TouchableOpacity>
-      )}
+     {/* 🚚 TRACK BUTTON */}
+{activeDonation ? (
+  <TouchableOpacity
+    style={styles.trackBtn}
+    onPress={() =>
+      navigation.navigate("LiveTracking", {
+        donationId: activeDonation._id,
+      })
+    }
+  >
+    <Ionicons name="navigate" size={18} color="#fff" />
+    <Text style={styles.trackText}>Track Volunteer Live</Text>
+  </TouchableOpacity>
+) : (
+  <Text
+    style={{
+      textAlign: "center",
+      marginBottom: 20,
+      color: "#6B7280",
+      fontWeight: "600",
+    }}
+  >
+    No orders assigned
+  </Text>
+)}
+
 
       {/* ABOUT */}
       <Text style={styles.sectionTitle}>About</Text>
