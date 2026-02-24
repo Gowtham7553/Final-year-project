@@ -36,23 +36,13 @@ const homeSchema = new mongoose.Schema(
     zipCode:String
   },
 
-  // 📍 GPS LOCATION (FOR DELIVERY)
+  // 📍 GPS LOCATION
   location:{
-    latitude:{
-      type:Number,
-      default:0
-    },
-    longitude:{
-      type:Number,
-      default:0
-    }
+    latitude:{ type:Number, default:0 },
+    longitude:{ type:Number, default:0 }
   },
 
-  // 📍 full readable address from map
-  fullAddress:{
-    type:String,
-    default:""
-  },
+  fullAddress:{ type:String, default:"" },
 
   role:{
     type:String,
@@ -62,6 +52,35 @@ const homeSchema = new mongoose.Schema(
   approved:{
     type:Boolean,
     default:true
+  },
+
+  /* ===============================
+     🧠 AI LEVEL 5 FIELDS
+  ===============================*/
+
+  people:{
+    type:Number,
+    default:0
+  },
+
+  foodNeeded:{
+    type:Boolean,
+    default:true
+  },
+
+  medicalNeeded:{
+    type:Boolean,
+    default:false
+  },
+
+  lastDonationDays:{
+    type:Number,
+    default:5
+  },
+
+  priorityScore:{
+    type:Number,
+    default:0
   }
 
 },

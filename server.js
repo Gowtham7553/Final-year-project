@@ -8,6 +8,8 @@ import homeRoutes from "./routes/homeroutes.js";
 import donorRoutes from "./routes/donorroutes.js";
 import authRoutes from "./routes/authroutes.js";
 import donationRoutes from "./routes/donationroutes.js";
+import aiRoutes from "./routes/ai.js";
+import helpRequestRoutes from "./routes/helprequestroutes.js";
 
 dotenv.config();
 connectDB();
@@ -28,6 +30,8 @@ app.use("/api/homes", homeRoutes);
 app.use("/api/donors", donorRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/donations", donationRoutes);
+app.use("/api/ai", aiRoutes);
+app.use("/api/helprequests", helpRequestRoutes);
 
 /* ========= SERVER ========= */
 const PORT = process.env.PORT || 5000;

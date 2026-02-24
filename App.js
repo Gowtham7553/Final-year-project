@@ -25,6 +25,7 @@ import SubmitRequestScreen from "./screens/submitrequestscreen";
 import MapPickerScreen from "./screens/mappickerscreen";
 import LiveTrackingScreen from "./screens/livetrackingscreen";
 import TrackDonationScreen from "./screens/trackdonationscreen";
+import ChatbotScreen from "./screens/chatbotscreen";
 const Stack = createNativeStackNavigator();
 
 export default function App() {
@@ -62,6 +63,7 @@ export default function App() {
         <Stack.Screen name="MapPicker" component={MapPickerScreen} />
         <Stack.Screen name="LiveTracking" component={LiveTrackingScreen} />
         <Stack.Screen name="TrackDonation" component={TrackDonationScreen} />
+        <Stack.Screen name="Chatbot" component={ChatbotScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );
