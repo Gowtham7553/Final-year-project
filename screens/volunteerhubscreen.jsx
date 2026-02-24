@@ -8,6 +8,7 @@ import {
   ImageBackground,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { MaterialIcons } from '@expo/vector-icons';   // ADD THIS
 
 export default function VolunteerHubScreen({ navigation }) {
   return (
@@ -72,6 +73,20 @@ export default function VolunteerHubScreen({ navigation }) {
           >
             <Text style={styles.actionBtnText}>View Tasks</Text>
           </TouchableOpacity>
+
+          <TouchableOpacity
+  onPress={() => navigation.navigate("Chatbot")}
+  style={{
+    position:"absolute",
+    bottom:20,
+    right:20,
+    backgroundColor:"#7C3AED",
+    padding:15,
+    borderRadius:30
+  }}
+>
+  <MaterialIcons name="support-agent" size={24} color="#fff"/>
+</TouchableOpacity>
         </View>
 
         {/* Grid Actions */}

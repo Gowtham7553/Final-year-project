@@ -8,6 +8,7 @@ import {
   ImageBackground,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { MaterialIcons } from '@expo/vector-icons';   // ADD THIS
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function DonorHubScreen({ navigation }) {
@@ -51,7 +52,11 @@ export default function DonorHubScreen({ navigation }) {
           </TouchableOpacity>
 
           <Text style={styles.headerTitle}>Donor Hub</Text>
-          <Ionicons name="notifications-outline" size={22} />
+          <TouchableOpacity
+            onPress={() => navigation.navigate("DonorNotifications")}
+          >
+            <Ionicons name="notifications-outline" size={22} />
+          </TouchableOpacity>
         </View>
 
         {/* HERO */}
@@ -154,6 +159,19 @@ export default function DonorHubScreen({ navigation }) {
               Manage your personal details
             </Text>
           </TouchableOpacity>
+          <TouchableOpacity
+  onPress={() => navigation.navigate("Chatbot")}
+  style={{
+    position:"absolute",
+    bottom:20,
+    right:20,
+    backgroundColor:"#7C3AED",
+    padding:15,
+    borderRadius:30
+  }}
+>
+  <MaterialIcons name="support-agent" size={24} color="#fff"/>
+</TouchableOpacity>
 
         </View>
 

@@ -6,8 +6,15 @@ import {
   TouchableOpacity,
   TextInput,
   ScrollView,
+  Dimensions
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+
+const { width } = Dimensions.get("window");
+
+// responsive scaling
+const scale = width / 375;
+const normalize = (size) => Math.round(scale * size);
 
 export default function SubmitHelpRequestScreen({ navigation }) {
   const [need, setNeed] = useState("Education");
@@ -18,21 +25,24 @@ export default function SubmitHelpRequestScreen({ navigation }) {
     { label: "Education", icon: "school-outline" },
     { label: "Food", icon: "restaurant-outline" },
     { label: "Clothing", icon: "shirt-outline" },
-    { label: "Medical", icon: "medkit-outline" },
-    { label: "Mentorship", icon: "people-outline" },
+    { label: "Medical", icon: "medkit-outline" }
   ];
 
   const urgencies = ["Standard", "Urgent", "Critical"];
 
   return (
-    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={{ paddingBottom: normalize(40) }}
+      showsVerticalScrollIndicator={false}
+    >
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="close" size={22} />
+          <Ionicons name="close" size={normalize(22)} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Submit Help Request</Text>
-        <View style={{ width: 22 }} />
+        <View style={{ width: normalize(22) }} />
       </View>
 
       {/* Title */}
@@ -41,13 +51,6 @@ export default function SubmitHelpRequestScreen({ navigation }) {
         Please fill out the details below so we can connect you with the right
         support.
       </Text>
-
-      {/* Who is this for */}
-      <Text style={styles.label}>Who is this for?</Text>
-      <TouchableOpacity style={styles.dropdown}>
-        <Text style={styles.dropdownText}>Select a child profile</Text>
-        <Ionicons name="chevron-down" size={18} color="#9CA3AF" />
-      </TouchableOpacity>
 
       {/* Needs */}
       <Text style={styles.label}>What do they need?</Text>
@@ -62,7 +65,7 @@ export default function SubmitHelpRequestScreen({ navigation }) {
             >
               <Ionicons
                 name={item.icon}
-                size={16}
+                size={normalize(16)}
                 color={active ? "#fff" : "#6B7280"}
               />
               <Text
@@ -94,7 +97,7 @@ export default function SubmitHelpRequestScreen({ navigation }) {
                     ? "alert-circle-outline"
                     : "warning-outline"
                 }
-                size={18}
+                size={normalize(18)}
                 color={active ? "#7C3AED" : "#6B7280"}
               />
               <Text
@@ -114,35 +117,18 @@ export default function SubmitHelpRequestScreen({ navigation }) {
       <Text style={styles.label}>Tell us more about the situation</Text>
       <TextInput
         style={styles.textArea}
-        placeholder="Please describe the specific needs, sizing, or any medical conditions we should be aware of..."
+        placeholder="Please describe the needs clearly..."
         multiline
         value={description}
         onChangeText={setDescription}
       />
 
-      {/* Attachments */}
-      <Text style={styles.label}>Attachments (Optional)</Text>
-      <View style={styles.attachRow}>
-        <TouchableOpacity style={styles.attachBox}>
-          <Ionicons name="camera-outline" size={20} color="#7C3AED" />
-          <Text style={styles.attachText}>Add Photo</Text>
-        </TouchableOpacity>
-
-        <View style={styles.previewBox}>
-          <Ionicons name="close-circle" size={18} color="#9CA3AF" />
-        </View>
-      </View>
-
-      <Text style={styles.attachHint}>
-        Upload medical bills, report cards, or photos.
-      </Text>
-
       {/* Submit */}
       <TouchableOpacity style={styles.button}>
-        <Text style={styles.buttonText}>Submit →</Text>
+        <Text style={styles.buttonText}>Submit Request</Text>
       </TouchableOpacity>
 
-      <View style={{ height: 40 }} />
+      <View style={{ height: normalize(40) }} />
     </ScrollView>
   );
 }
@@ -150,179 +136,129 @@ export default function SubmitHelpRequestScreen({ navigation }) {
 const PURPLE = "#7C3AED";
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#F9FAFB",
-    paddingHorizontal: 20,
-  },
+container:{
+  flex:1,
+  backgroundColor:"#F9FAFB",
+  paddingHorizontal: normalize(20)
+},
 
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginVertical: 14,
-  },
+header:{
+  flexDirection:"row",
+  justifyContent:"space-between",
+  alignItems:"center",
+  marginVertical: normalize(14)
+},
 
-  headerTitle: {
-    fontSize: 16,
-    fontWeight: "700",
-  },
+headerTitle:{
+  fontSize: normalize(16),
+  fontWeight:"700"
+},
 
-  title: {
-    fontSize: 24,
-    fontWeight: "800",
-    marginBottom: 6,
-  },
+title:{
+  fontSize: normalize(24),
+  fontWeight:"800",
+  marginBottom: normalize(6)
+},
 
-  subtitle: {
-    color: "#6B7280",
-    marginBottom: 20,
-  },
+subtitle:{
+  color:"#6B7280",
+  marginBottom: normalize(20),
+  fontSize: normalize(13)
+},
 
-  label: {
-    fontWeight: "600",
-    marginBottom: 8,
-    marginTop: 16,
-  },
+label:{
+  fontWeight:"600",
+  marginBottom: normalize(8),
+  marginTop: normalize(16),
+  fontSize: normalize(14)
+},
 
-  dropdown: {
-    backgroundColor: "#fff",
-    borderRadius: 12,
-    padding: 14,
-    borderWidth: 1,
-    borderColor: "#E5E7EB",
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
+chipRow:{
+  flexDirection:"row",
+  flexWrap:"wrap",
+  gap: normalize(10)
+},
 
-  dropdownText: {
-    color: "#9CA3AF",
-  },
+chip:{
+  flexDirection:"row",
+  alignItems:"center",
+  gap:6,
+  paddingHorizontal: normalize(14),
+  paddingVertical: normalize(10),
+  borderRadius: normalize(20),
+  borderWidth:1,
+  borderColor:"#E5E7EB",
+  backgroundColor:"#fff"
+},
 
-  chipRow: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 10,
-  },
+chipActive:{
+  backgroundColor:PURPLE,
+  borderColor:PURPLE
+},
 
-  chip: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: "#E5E7EB",
-    backgroundColor: "#fff",
-  },
+chipText:{
+  fontWeight:"600",
+  fontSize: normalize(13),
+  color:"#374151"
+},
 
-  chipActive: {
-    backgroundColor: PURPLE,
-    borderColor: PURPLE,
-  },
+chipTextActive:{
+  color:"#fff"
+},
 
-  chipText: {
-    fontWeight: "600",
-    fontSize: 13,
-    color: "#374151",
-  },
+urgencyRow:{
+  flexDirection:"row",
+  justifyContent:"space-between"
+},
 
-  chipTextActive: {
-    color: "#fff",
-  },
+urgencyBox:{
+  width:"30%",
+  backgroundColor:"#fff",
+  borderRadius: normalize(14),
+  paddingVertical: normalize(14),
+  alignItems:"center",
+  borderWidth:1,
+  borderColor:"#E5E7EB"
+},
 
-  urgencyRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-  },
+urgencyActive:{
+  borderColor:PURPLE,
+  backgroundColor:"#F3E8FF"
+},
 
-  urgencyBox: {
-    width: "30%",
-    backgroundColor: "#fff",
-    borderRadius: 14,
-    paddingVertical: 14,
-    alignItems: "center",
-    borderWidth: 1,
-    borderColor: "#E5E7EB",
-  },
+urgencyText:{
+  fontSize: normalize(12),
+  marginTop:6,
+  color:"#6B7280",
+  fontWeight:"600"
+},
 
-  urgencyActive: {
-    borderColor: PURPLE,
-    backgroundColor: "#F3E8FF",
-  },
+urgencyTextActive:{
+  color:PURPLE
+},
 
-  urgencyText: {
-    fontSize: 12,
-    marginTop: 6,
-    color: "#6B7280",
-    fontWeight: "600",
-  },
+textArea:{
+  backgroundColor:"#fff",
+  borderRadius: normalize(12),
+  padding: normalize(14),
+  borderWidth:1,
+  borderColor:"#E5E7EB",
+  minHeight: normalize(100),
+  textAlignVertical:"top",
+  fontSize: normalize(14)
+},
 
-  urgencyTextActive: {
-    color: PURPLE,
-  },
+button:{
+  backgroundColor:PURPLE,
+  padding: normalize(18),
+  borderRadius: normalize(30),
+  alignItems:"center",
+  marginTop: normalize(20)
+},
 
-  textArea: {
-    backgroundColor: "#fff",
-    borderRadius: 12,
-    padding: 14,
-    borderWidth: 1,
-    borderColor: "#E5E7EB",
-    minHeight: 100,
-    textAlignVertical: "top",
-  },
-
-  attachRow: {
-    flexDirection: "row",
-    gap: 12,
-    marginBottom: 8,
-  },
-
-  attachBox: {
-    width: 90,
-    height: 90,
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: "#C4B5FD",
-    borderStyle: "dashed",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-
-  attachText: {
-    fontSize: 12,
-    color: PURPLE,
-    marginTop: 4,
-    fontWeight: "600",
-  },
-
-  previewBox: {
-    width: 90,
-    height: 90,
-    borderRadius: 14,
-    backgroundColor: "#E5E7EB",
-    alignItems: "flex-end",
-    padding: 6,
-  },
-
-  attachHint: {
-    fontSize: 12,
-    color: "#6B7280",
-    marginBottom: 24,
-  },
-
-  button: {
-    backgroundColor: PURPLE,
-    padding: 18,
-    borderRadius: 30,
-    alignItems: "center",
-  },
-
-  buttonText: {
-    color: "#fff",
-    fontWeight: "700",
-    fontSize: 16,
-  },
+buttonText:{
+  color:"#fff",
+  fontWeight:"700",
+  fontSize: normalize(16)
+}
 });
