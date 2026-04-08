@@ -10,7 +10,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-const BASE_URL = "http://10.160.239.124:5000";
+const BASE_URL = "http://10.90.184.124:5000";
 
 export default function LoginScreen({ navigation }) {
   const [role, setRole] = useState("Volunteer");
@@ -18,7 +18,9 @@ export default function LoginScreen({ navigation }) {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // 🔐 AUTH + AUTHORIZATION LOGIN
+  // ✅ ADDED: password visibility state
+  const [showPassword, setShowPassword] = useState(false);
+
   const handleLogin = async () => {
     if (!email || !password) {
       Alert.alert("Error", "Please enter email and password");
@@ -34,7 +36,7 @@ export default function LoginScreen({ navigation }) {
         body: JSON.stringify({
           email,
           password,
-          role, // ⭐ VERY IMPORTANT
+          role,
         }),
       });
 
@@ -46,10 +48,8 @@ export default function LoginScreen({ navigation }) {
         return;
       }
 
-      // 🔐 CLEAR OLD SESSION
       await AsyncStorage.clear();
 
-      // ✅ ROLE BASED NAVIGATION (STRICT)
       if (role === "Volunteer") {
         await AsyncStorage.setItem(
           "volunteer",
@@ -73,24 +73,21 @@ export default function LoginScreen({ navigation }) {
         });
 
       } else if (role === "Home") {
+        await AsyncStorage.setItem(
+          "home",
+          JSON.stringify({ homeId: data.userId })
+        );
 
-  // save in storage
-  await AsyncStorage.setItem(
-    "home",
-    JSON.stringify({ homeId: data.userId })
-  );
-
-  // ⭐ PASS homeId to profile screen
-  navigation.reset({
-    index: 0,
-    routes: [
-      {
-        name: "HomeProfile",
-        params: { homeId: data.userId }, // ⭐ IMPORTANT
-      },
-    ],
-  });
-}
+        navigation.reset({
+          index: 0,
+          routes: [
+            {
+              name: "HomeProfile",
+              params: { homeId: data.userId },
+            },
+          ],
+        });
+      }
 
     } catch (error) {
       Alert.alert("Error", "Server not reachable");
@@ -101,12 +98,10 @@ export default function LoginScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
-      {/* Header */}
       <View style={styles.header}>
-       <TouchableOpacity onPress={() => navigation.navigate("Welcome")}>
-  <Ionicons name="arrow-back" size={22} />
-</TouchableOpacity>
-
+        <TouchableOpacity onPress={() => navigation.navigate("Welcome")}>
+          <Ionicons name="arrow-back" size={22} />
+        </TouchableOpacity>
 
         <View style={styles.headerCenter}>
           <Ionicons name="hand-left" size={20} color="#8B5CF6" />
@@ -116,13 +111,11 @@ export default function LoginScreen({ navigation }) {
         <View style={{ width: 22 }} />
       </View>
 
-      {/* Title */}
       <Text style={styles.title}>Welcome Back</Text>
       <Text style={styles.subtitle}>
         Enter your details to continue your impact.
       </Text>
 
-      {/* Role Selector */}
       <View style={styles.roleSwitch}>
         {["Volunteer", "Donor", "Home"].map((item) => {
           const active = role === item;
@@ -144,7 +137,6 @@ export default function LoginScreen({ navigation }) {
 
       <Text style={styles.roleLabel}>SELECT ACCOUNT TYPE</Text>
 
-      {/* Email */}
       <Text style={styles.label}>Email</Text>
       <View style={styles.inputBox}>
         <Ionicons name="mail-outline" size={18} color="#9CA3AF" />
@@ -158,26 +150,29 @@ export default function LoginScreen({ navigation }) {
         />
       </View>
 
-      {/* Password */}
       <Text style={styles.label}>Password</Text>
       <View style={styles.inputBox}>
         <Ionicons name="lock-closed-outline" size={18} color="#9CA3AF" />
+        
         <TextInput
           style={styles.input}
           placeholder="••••••••"
-          secureTextEntry
+          secureTextEntry={!showPassword}   // ✅ FIXED
           value={password}
           onChangeText={setPassword}
         />
-        <Ionicons name="eye-outline" size={18} color="#9CA3AF" />
+
+        {/* ✅ FIXED: Touchable eye icon */}
+        <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+          <Ionicons
+            name={showPassword ? "eye-off-outline" : "eye-outline"}
+            size={18}
+            color="#9CA3AF"
+          />
+        </TouchableOpacity>
+
       </View>
 
-      {/* Forgot */}
-      <TouchableOpacity style={styles.forgot}>
-        <Text style={styles.forgotText}>Forgot Password?</Text>
-      </TouchableOpacity>
-
-      {/* Login */}
       <TouchableOpacity
         style={styles.loginBtn}
         onPress={handleLogin}

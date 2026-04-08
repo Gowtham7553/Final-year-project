@@ -1,6 +1,7 @@
 import express from "express";
 import Donation from "../models/donation.js";
 import Home from "../models/home.js";
+import HelpRequest from "../models/helpRequest.js"; // ⭐ ADD THIS
 import crypto from "crypto";
 
 const router = express.Router();
@@ -42,7 +43,7 @@ function calculatePriority(data){
 
 
 /* =====================================================
-   💰 + 📦 CREATE DONATION (MONEY + ITEMS)
+   💰 + 📦 CREATE DONATION
 ===================================================== */
 router.post("/create", async (req, res) => {
   try {
@@ -63,6 +64,8 @@ router.post("/create", async (req, res) => {
       donorLng,
       homeLat,
       homeLng,
+
+      requestId // ⭐ IMPORTANT FROM NOTIFICATION
     } = req.body;
 
     if (!donorId) {
@@ -113,13 +116,23 @@ router.post("/create", async (req, res) => {
       items: [{ category, description, quantity }],
       type: "items",
       priority: priorityScore,
-      blockHash: blockHash,        // ⭐ blockchain
+      blockHash: blockHash,
       status: "Pending"
     });
 
     await donation.save();
 
     console.log("🔗 Blockchain hash:", blockHash);
+
+    /* =====================================================
+       ⭐ MARK REQUEST COMPLETED (VERY IMPORTANT)
+    ===================================================== */
+    if(requestId){
+      await HelpRequest.findByIdAndUpdate(requestId,{
+        status:"Completed"
+      });
+      console.log("✅ Help request moved to completed");
+    }
 
     res.json({
       message: "Item donation created",
@@ -159,7 +172,7 @@ router.get("/pending", async (req,res)=>{
    })
    .populate("homeId","homeName fullAddress phone location")
    .populate("donorId","name")
-   .sort({ priority:-1, createdAt:-1 }); // ⭐ AI sorting
+   .sort({ priority:-1, createdAt:-1 });
 
    res.json(donations);
 
@@ -183,7 +196,6 @@ router.put("/accept/:id", async (req,res)=>{
    donation.status="Accepted";
    donation.volunteerId=volunteerId;
 
-   // ⭐ OTP FOR HOME
    donation.otp = Math.floor(1000+Math.random()*9000).toString();
 
    await donation.save();
@@ -218,7 +230,7 @@ router.put("/pickup/:id", async (req,res)=>{
 
 
 /* =====================================================
-   🔐 VERIFY OTP (HOME ENTERS)
+   🔐 VERIFY OTP
 ===================================================== */
 router.post("/verify-otp/:id", async (req,res)=>{
  try{
@@ -245,7 +257,7 @@ router.post("/verify-otp/:id", async (req,res)=>{
 
 
 /* =====================================================
-   📍 LIVE LOCATION UPDATE (VOLUNTEER)
+   📍 LIVE LOCATION
 ===================================================== */
 router.put("/location/:id", async (req,res)=>{
  try{
@@ -283,22 +295,6 @@ router.get("/history/:volunteerId", async (req,res)=>{
 
  }catch{
    res.status(500).json({message:"History error"});
- }
-});
-
-
-/* =====================================================
-   🏠 HOME GET OTP (POPUP)
-===================================================== */
-router.get("/home-otp/:donationId", async (req,res)=>{
- try{
-   const donation = await Donation.findById(req.params.donationId);
-   if(!donation) return res.status(404).json({message:"Not found"});
-
-   res.json({otp:donation.otp});
-
- }catch{
-   res.status(500).json({message:"OTP error"});
  }
 });
 

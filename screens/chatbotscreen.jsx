@@ -47,7 +47,7 @@ export default function ChatbotScreen() {
     setTyping(true);
 
     try {
-      const response = await fetch("http://10.160.239.124:5000/api/ai/chat", {
+      const response = await fetch("http://10.90.184.124:5000/api/ai/chat", {
         method: "POST",
         headers: {
           "Content-Type": "application/json"

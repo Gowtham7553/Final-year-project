@@ -18,7 +18,7 @@ const { width } = Dimensions.get("window");
 const scale = width / 375;
 const normalize = (size) => Math.round(scale * size);
 
-const BASE_URL = "http://10.160.239.124:5000";
+const BASE_URL = "http://10.90.184.124:5000";
 
 export default function HomeProfileScreen({ navigation, route }) {
 

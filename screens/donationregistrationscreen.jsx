@@ -34,7 +34,7 @@ export default function CreateAccountScreen({ navigation }) {
 
     try {
       const response = await fetch(
-        "http://10.160.239.124:5000/api/donors/register",
+        "http://10.90.184.124:5000/api/donors/register",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -167,7 +167,14 @@ export default function CreateAccountScreen({ navigation }) {
           value={form.password}
           onChangeText={(v) => update("password", v)}
         />
-        <Ionicons name="eye-off-outline" size={18} color="#9CA3AF" />
+        {/* ✅ FIXED: Touchable eye icon */}
+                <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+                  <Ionicons
+                    name={showPassword ? "eye-off-outline" : "eye-outline"}
+                    size={18}
+                    color="#9CA3AF"
+                  />
+                </TouchableOpacity>
       </View>
 
       {/* Register Button */}
