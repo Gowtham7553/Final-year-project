@@ -22,10 +22,12 @@ export default function CreateAccountScreen({ navigation }) {
     password: "",
   });
 
+  // ✅ ADDED
+  const [showPassword, setShowPassword] = useState(false);
+
   const update = (key, value) =>
     setForm({ ...form, [key]: value });
 
-  // 🔹 REGISTER HANDLER
   const handleRegister = async () => {
     if (!form.name || !form.email || !form.phone || !form.password) {
       Alert.alert("Error", "Please fill all required fields");
@@ -58,6 +60,7 @@ export default function CreateAccountScreen({ navigation }) {
 
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+      
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
@@ -163,18 +166,18 @@ export default function CreateAccountScreen({ navigation }) {
         <TextInput
           style={styles.input}
           placeholder="Min. 8 characters"
-          secureTextEntry
+          secureTextEntry={!showPassword}   // ✅ FIXED
           value={form.password}
           onChangeText={(v) => update("password", v)}
         />
-        {/* ✅ FIXED: Touchable eye icon */}
-                <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-                  <Ionicons
-                    name={showPassword ? "eye-off-outline" : "eye-outline"}
-                    size={18}
-                    color="#9CA3AF"
-                  />
-                </TouchableOpacity>
+
+        <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+          <Ionicons
+            name={showPassword ? "eye-off-outline" : "eye-outline"}
+            size={18}
+            color="#9CA3AF"
+          />
+        </TouchableOpacity>
       </View>
 
       {/* Register Button */}

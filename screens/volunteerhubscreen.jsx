@@ -6,14 +6,21 @@ import {
   TouchableOpacity,
   ScrollView,
   ImageBackground,
+  Dimensions
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { MaterialIcons } from '@expo/vector-icons';   // ADD THIS
+import { MaterialIcons } from "@expo/vector-icons";
+import { SafeAreaView } from "react-native-safe-area-context";
+
+const { width, height } = Dimensions.get("window");
 
 export default function VolunteerHubScreen({ navigation }) {
   return (
-    <View style={styles.container}>
-      <ScrollView showsVerticalScrollIndicator={false}>
+    <SafeAreaView style={styles.container}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: height * 0.05 }}
+      >
 
         {/* Header */}
         <View style={styles.header}>
@@ -32,12 +39,10 @@ export default function VolunteerHubScreen({ navigation }) {
 
           <TouchableOpacity>
             <Ionicons name="notifications-outline" size={22} />
-            {/* Optional notification dot */}
-            {/* <View style={styles.dot} /> */}
           </TouchableOpacity>
         </View>
 
-        {/* Hero with Image Background */}
+        {/* Hero */}
         <ImageBackground
           source={require("../assets/childrens.jpg")}
           style={styles.heroCard}
@@ -73,23 +78,9 @@ export default function VolunteerHubScreen({ navigation }) {
           >
             <Text style={styles.actionBtnText}>View Tasks</Text>
           </TouchableOpacity>
-
-          <TouchableOpacity
-  onPress={() => navigation.navigate("Chatbot")}
-  style={{
-    position:"absolute",
-    bottom:20,
-    right:20,
-    backgroundColor:"#7C3AED",
-    padding:15,
-    borderRadius:30
-  }}
->
-  <MaterialIcons name="support-agent" size={24} color="#fff"/>
-</TouchableOpacity>
         </View>
 
-        {/* Grid Actions */}
+        {/* Grid */}
         <View style={styles.grid}>
           <TouchableOpacity style={styles.gridCard}>
             <Ionicons name="heart" size={22} color="#7C3AED" />
@@ -125,7 +116,16 @@ export default function VolunteerHubScreen({ navigation }) {
           <Ionicons name="chevron-forward" size={18} color="#9CA3AF" />
         </TouchableOpacity>
 
-        {/* Volunteer Tip */}
+        {/* 🤖 Chatbot BELOW PROFILE (FIXED) */}
+        <TouchableOpacity
+          onPress={() => navigation.navigate("Chatbot")}
+          style={styles.chatbotBtn}
+        >
+          <MaterialIcons name="support-agent" size={22} color="#fff" />
+          <Text style={styles.chatbotText}>Need Help? Chat with us</Text>
+        </TouchableOpacity>
+
+        {/* Tip */}
         <View style={styles.tipBox}>
           <Ionicons name="bulb-outline" size={20} color="#7C3AED" />
           <Text style={styles.tipText}>
@@ -145,206 +145,143 @@ export default function VolunteerHubScreen({ navigation }) {
           © 2024 Hope Connect. Making impact visible.
         </Text>
 
-        <View style={{ height: 30 }} />
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 }
 
 const PURPLE = "#7C3AED";
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#F9FAFB",
-    paddingHorizontal: 16,
-  },
 
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginVertical: 14,
-  },
+container:{
+  flex:1,
+  backgroundColor:"#F9FAFB",
+  paddingHorizontal: width * 0.05,
+},
 
-  headerTitle: {
-    fontSize: 16,
-    fontWeight: "700",
-  },
+header:{
+  flexDirection:"row",
+  alignItems:"center",
+  justifyContent:"space-between",
+  marginVertical: height * 0.02,
+},
 
-  dot: {
-    position: "absolute",
-    right: 2,
-    top: 2,
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: "#EF4444",
-  },
+headerTitle:{
+  fontSize: width * 0.045,
+  fontWeight:"700",
+},
 
-  heroCard: {
-    height: 170,
-    borderRadius: 18,
-    marginBottom: 20,
-    overflow: "hidden",
-  },
+heroCard:{
+  height: height * 0.22,
+  borderRadius:18,
+  marginBottom: height * 0.025,
+  overflow:"hidden"
+},
 
-  heroOverlay: {
-    flex: 1,
-    padding: 20,
-    justifyContent: "flex-end",
-    backgroundColor: "rgba(0,0,0,0.45)",
-  },
+heroOverlay:{
+  flex:1,
+  padding: width * 0.05,
+  justifyContent:"flex-end",
+  backgroundColor:"rgba(0,0,0,0.45)"
+},
 
-  heroTag: {
-    color: "#E9D5FF",
-    fontSize: 12,
-  },
+heroTag:{color:"#E9D5FF",fontSize: width * 0.03},
+heroTitle:{color:"#fff",fontSize: width * 0.055,fontWeight:"800",marginTop:6},
+heroSub:{color:"#E5E7EB",marginTop:4},
 
-  heroTitle: {
-    color: "#fff",
-    fontSize: 22,
-    fontWeight: "800",
-    marginTop: 6,
-  },
+section:{fontSize: width * 0.05,fontWeight:"800",marginBottom:12},
 
-  heroSub: {
-    color: "#E5E7EB",
-    marginTop: 4,
-  },
+actionCard:{
+  backgroundColor:"#fff",
+  borderRadius:16,
+  padding: width * 0.04,
+  flexDirection:"row",
+  justifyContent:"space-between",
+  alignItems:"center",
+  marginBottom: height * 0.02,
+},
 
-  section: {
-    fontSize: 18,
-    fontWeight: "800",
-    marginBottom: 12,
-  },
+actionLeft:{flexDirection:"row",alignItems:"center"},
 
-  actionCard: {
-    backgroundColor: "#fff",
-    borderRadius: 16,
-    padding: 14,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 16,
-  },
+iconCircle:{
+  width: width * 0.1,
+  height: width * 0.1,
+  borderRadius:20,
+  backgroundColor:"#EDE9FE",
+  alignItems:"center",
+  justifyContent:"center",
+  marginRight:10,
+},
 
-  actionLeft: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
+actionTitle:{fontWeight:"700"},
+actionDesc:{fontSize: width * 0.03,color:"#6B7280"},
 
-  iconCircle: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: "#EDE9FE",
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: 10,
-  },
+actionBtn:{
+  backgroundColor:PURPLE,
+  paddingHorizontal: width * 0.04,
+  paddingVertical: height * 0.01,
+  borderRadius:16,
+},
 
-  actionTitle: {
-    fontWeight: "700",
-  },
+actionBtnText:{color:"#fff",fontWeight:"700",fontSize: width * 0.03},
 
-  actionDesc: {
-    fontSize: 12,
-    color: "#6B7280",
-  },
+grid:{flexDirection:"row",justifyContent:"space-between",marginBottom:16},
 
-  actionBtn: {
-    backgroundColor: PURPLE,
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 16,
-  },
+gridCard:{
+  width:"48%",
+  backgroundColor:"#fff",
+  borderRadius:16,
+  padding: width * 0.04,
+},
 
-  actionBtnText: {
-    color: "#fff",
-    fontWeight: "700",
-    fontSize: 12,
-  },
+gridTitle:{fontWeight:"700",marginTop:10},
+gridDesc:{fontSize: width * 0.03,color:"#6B7280",marginTop:4},
 
-  grid: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: 16,
-  },
+profileCard:{
+  backgroundColor:"#fff",
+  borderRadius:16,
+  padding: width * 0.04,
+  flexDirection:"row",
+  justifyContent:"space-between",
+  alignItems:"center",
+  marginBottom: height * 0.02,
+},
 
-  gridCard: {
-    width: "48%",
-    backgroundColor: "#fff",
-    borderRadius: 16,
-    padding: 14,
-  },
+profileLeft:{flexDirection:"row",alignItems:"center"},
+profileText:{marginLeft:10,fontWeight:"700"},
 
-  gridTitle: {
-    fontWeight: "700",
-    marginTop: 10,
-  },
+/* 🤖 Chatbot Button */
+chatbotBtn:{
+  flexDirection:"row",
+  alignItems:"center",
+  justifyContent:"center",
+  backgroundColor:PURPLE,
+  padding: width * 0.04,
+  borderRadius:20,
+  marginBottom: height * 0.02,
+},
 
-  gridDesc: {
-    fontSize: 12,
-    color: "#6B7280",
-    marginTop: 4,
-  },
+chatbotText:{
+  color:"#fff",
+  marginLeft:8,
+  fontWeight:"700",
+},
 
-  profileCard: {
-    backgroundColor: "#fff",
-    borderRadius: 16,
-    padding: 14,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 16,
-  },
+tipBox:{
+  backgroundColor:"#F3E8FF",
+  borderRadius:16,
+  padding: width * 0.04,
+  flexDirection:"row",
+  alignItems:"center",
+  marginBottom:20,
+},
 
-  profileLeft: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
+tipText:{marginLeft:10,color:"#4C1D95",flex:1,fontSize: width * 0.032},
+bold:{fontWeight:"800"},
 
-  profileText: {
-    marginLeft: 10,
-    fontWeight: "700",
-  },
+footer:{flexDirection:"row",justifyContent:"center",gap:20,marginBottom:6},
+footerText:{fontSize: width * 0.03,color:"#6B7280"},
+copy:{fontSize: width * 0.028,color:"#9CA3AF",textAlign:"center"}
 
-  tipBox: {
-    backgroundColor: "#F3E8FF",
-    borderRadius: 16,
-    padding: 14,
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 20,
-  },
-
-  tipText: {
-    marginLeft: 10,
-    color: "#4C1D95",
-    flex: 1,
-    fontSize: 13,
-  },
-
-  bold: {
-    fontWeight: "800",
-  },
-
-  footer: {
-    flexDirection: "row",
-    justifyContent: "center",
-    gap: 20,
-    marginBottom: 6,
-  },
-
-  footerText: {
-    fontSize: 12,
-    color: "#6B7280",
-  },
-
-  copy: {
-    fontSize: 11,
-    color: "#9CA3AF",
-    textAlign: "center",
-  },
 });

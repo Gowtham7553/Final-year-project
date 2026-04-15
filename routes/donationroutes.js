@@ -1,7 +1,7 @@
 import express from "express";
 import Donation from "../models/donation.js";
 import Home from "../models/home.js";
-import HelpRequest from "../models/helpRequest.js"; // ⭐ ADD THIS
+import HelpRequest from "../models/helprequest.js"; // ⭐ ADD THIS
 import crypto from "crypto";
 
 const router = express.Router();
@@ -9,7 +9,7 @@ const router = express.Router();
 /* =====================================================
    🧠 AI PRIORITY ALGORITHM
 ===================================================== */
-function calculatePriority(data){
+function calculatePriority(data) {
 
   const urgencyWeight = {
     medical: 1.0,
@@ -127,9 +127,9 @@ router.post("/create", async (req, res) => {
     /* =====================================================
        ⭐ MARK REQUEST COMPLETED (VERY IMPORTANT)
     ===================================================== */
-    if(requestId){
-      await HelpRequest.findByIdAndUpdate(requestId,{
-        status:"Completed"
+    if (requestId) {
+      await HelpRequest.findByIdAndUpdate(requestId, {
+        status: "Completed"
       });
       console.log("✅ Help request moved to completed");
     }
@@ -150,189 +150,189 @@ router.post("/create", async (req, res) => {
 /* =====================================================
    🏠 GET HOMES
 ===================================================== */
-router.get("/homes", async (req,res)=>{
- try{
-   const homes = await Home.find();
-   res.json(homes);
- }catch{
-   res.status(500).json({message:"Failed"}); 
- }
+router.get("/homes", async (req, res) => {
+  try {
+    const homes = await Home.find();
+    res.json(homes);
+  } catch {
+    res.status(500).json({ message: "Failed" });
+  }
 });
 
 
 /* =====================================================
    🚚 VOLUNTEER TASKS (AI SORTED)
 ===================================================== */
-router.get("/pending", async (req,res)=>{
- try{
+router.get("/pending", async (req, res) => {
+  try {
 
-   const donations = await Donation.find({
-     type:"items",
-     status:{ $ne:"Delivered" }
-   })
-   .populate("homeId","homeName fullAddress phone location")
-   .populate("donorId","name")
-   .sort({ priority:-1, createdAt:-1 });
+    const donations = await Donation.find({
+      type: "items",
+      status: { $ne: "Delivered" }
+    })
+      .populate("homeId", "homeName fullAddress phone location")
+      .populate("donorId", "name")
+      .sort({ priority: -1, createdAt: -1 });
 
-   res.json(donations);
+    res.json(donations);
 
- }catch(err){
-   console.log(err);
-   res.status(500).json({message:"Error"});
- }
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ message: "Error" });
+  }
 });
 
 
 /* =====================================================
    🙋 ACCEPT DELIVERY
 ===================================================== */
-router.put("/accept/:id", async (req,res)=>{
- try{
-   const { volunteerId } = req.body;
+router.put("/accept/:id", async (req, res) => {
+  try {
+    const { volunteerId } = req.body;
 
-   const donation = await Donation.findById(req.params.id);
-   if(!donation) return res.status(404).json({message:"Not found"});
+    const donation = await Donation.findById(req.params.id);
+    if (!donation) return res.status(404).json({ message: "Not found" });
 
-   donation.status="Accepted";
-   donation.volunteerId=volunteerId;
+    donation.status = "Accepted";
+    donation.volunteerId = volunteerId;
 
-   donation.otp = Math.floor(1000+Math.random()*9000).toString();
+    donation.otp = Math.floor(1000 + Math.random() * 9000).toString();
 
-   await donation.save();
+    await donation.save();
 
-   console.log("🏠 HOME OTP:", donation.otp);
+    console.log("🏠 HOME OTP:", donation.otp);
 
-   res.json({message:"Accepted"});
+    res.json({ message: "Accepted" });
 
- }catch(err){
-   console.log(err);
-   res.status(500).json({message:"Error"});
- }
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ message: "Error" });
+  }
 });
 
 
 /* =====================================================
    📦 MARK PICKED
 ===================================================== */
-router.put("/pickup/:id", async (req,res)=>{
- try{
-   const donation=await Donation.findById(req.params.id);
-   if(!donation) return res.status(404).json({message:"Not found"});
+router.put("/pickup/:id", async (req, res) => {
+  try {
+    const donation = await Donation.findById(req.params.id);
+    if (!donation) return res.status(404).json({ message: "Not found" });
 
-   donation.status="Picked";
-   await donation.save();
+    donation.status = "Picked";
+    await donation.save();
 
-   res.json({message:"Picked"});
- }catch{
-   res.status(500).json({message:"Error"});
- }
+    res.json({ message: "Picked" });
+  } catch {
+    res.status(500).json({ message: "Error" });
+  }
 });
 
 
 /* =====================================================
    🔐 VERIFY OTP
 ===================================================== */
-router.post("/verify-otp/:id", async (req,res)=>{
- try{
-   const { otp } = req.body;
+router.post("/verify-otp/:id", async (req, res) => {
+  try {
+    const { otp } = req.body;
 
-   const donation = await Donation.findById(req.params.id);
-   if(!donation) return res.status(404).json({message:"Not found"});
+    const donation = await Donation.findById(req.params.id);
+    if (!donation) return res.status(404).json({ message: "Not found" });
 
-   if(donation.otp !== otp){
-     return res.status(400).json({message:"Wrong OTP"});
-   }
+    if (donation.otp !== otp) {
+      return res.status(400).json({ message: "Wrong OTP" });
+    }
 
-   donation.status="Delivered";
-   donation.otp="";
-   await donation.save();
+    donation.status = "Delivered";
+    donation.otp = "";
+    await donation.save();
 
-   res.json({message:"Delivered success"});
+    res.json({ message: "Delivered success" });
 
- }catch(err){
-   console.log(err);
-   res.status(500).json({message:"Error"});
- }
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ message: "Error" });
+  }
 });
 
 
 /* =====================================================
    📍 LIVE LOCATION
 ===================================================== */
-router.put("/location/:id", async (req,res)=>{
- try{
-   const { latitude, longitude } = req.body;
+router.put("/location/:id", async (req, res) => {
+  try {
+    const { latitude, longitude } = req.body;
 
-   const donation = await Donation.findById(req.params.id);
-   if(!donation) return res.status(404).json({message:"Not found"});
+    const donation = await Donation.findById(req.params.id);
+    if (!donation) return res.status(404).json({ message: "Not found" });
 
-   donation.volunteerLocation={latitude,longitude};
-   await donation.save();
+    donation.volunteerLocation = { latitude, longitude };
+    await donation.save();
 
-   res.json({message:"Location updated"});
+    res.json({ message: "Location updated" });
 
- }catch{
-   res.status(500).json({message:"Location error"});
- }
+  } catch {
+    res.status(500).json({ message: "Location error" });
+  }
 });
 
 
 /* =====================================================
    📜 VOLUNTEER HISTORY
 ===================================================== */
-router.get("/history/:volunteerId", async (req,res)=>{
- try{
+router.get("/history/:volunteerId", async (req, res) => {
+  try {
 
-   const donations = await Donation.find({
-     volunteerId:req.params.volunteerId,
-     status:"Delivered",
-     type:"items"
-   })
-   .populate("homeId","homeName")
-   .sort({updatedAt:-1});
+    const donations = await Donation.find({
+      volunteerId: req.params.volunteerId,
+      status: "Delivered",
+      type: "items"
+    })
+      .populate("homeId", "homeName")
+      .sort({ updatedAt: -1 });
 
-   res.json(donations);
+    res.json(donations);
 
- }catch{
-   res.status(500).json({message:"History error"});
- }
+  } catch {
+    res.status(500).json({ message: "History error" });
+  }
 });
 
 
 /* =====================================================
    🤖 AI HOME MATCHING
 ===================================================== */
-router.get("/ai-match/:donorLat/:donorLng", async (req,res)=>{
- try{
+router.get("/ai-match/:donorLat/:donorLng", async (req, res) => {
+  try {
 
-   const { donorLat, donorLng } = req.params;
-   const homes = await Home.find();
+    const { donorLat, donorLng } = req.params;
+    const homes = await Home.find();
 
-   let bestHome=null;
-   let bestScore=0;
+    let bestHome = null;
+    let bestScore = 0;
 
-   homes.forEach(home=>{
-     if(!home.location) return;
+    homes.forEach(home => {
+      if (!home.location) return;
 
-     const dist =
-       Math.sqrt(
-         Math.pow(donorLat-home.location.latitude,2)+
-         Math.pow(donorLng-home.location.longitude,2)
-       );
+      const dist =
+        Math.sqrt(
+          Math.pow(donorLat - home.location.latitude, 2) +
+          Math.pow(donorLng - home.location.longitude, 2)
+        );
 
-     let score = (1/dist) + (home.childrenCount || 10)/100;
+      let score = (1 / dist) + (home.childrenCount || 10) / 100;
 
-     if(score > bestScore){
-       bestScore = score;
-       bestHome = home;
-     }
-   });
+      if (score > bestScore) {
+        bestScore = score;
+        bestHome = home;
+      }
+    });
 
-   res.json(bestHome);
+    res.json(bestHome);
 
- }catch{
-   res.status(500).json({message:"AI match error"});
- }
+  } catch {
+    res.status(500).json({ message: "AI match error" });
+  }
 });
 
 export default router;

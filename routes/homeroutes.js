@@ -104,3 +104,18 @@ router.get("/", async (req,res)=>{
 });
 
 export default router;
+router.post("/pickup/:id", async (req,res)=>{
+
+  const { latitude, longitude } = req.body;
+
+  const updated = await HelpRequest.findByIdAndUpdate(
+    req.params.id,
+    {
+      pickupLocation:{ latitude, longitude },
+      status:"ready_for_delivery"
+    },
+    { new:true }
+  );
+
+  res.json(updated);
+});

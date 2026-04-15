@@ -1,104 +1,74 @@
 import React, { useEffect, useState } from "react";
-import { View, StyleSheet, TouchableOpacity, Text, Alert } from "react-native";
+import {
+  View, StyleSheet, TouchableOpacity, Text, Alert, Dimensions
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import MapView, { Marker } from "react-native-maps";
 import * as Location from "expo-location";
 import { Ionicons } from "@expo/vector-icons";
 
+const { width, height } = Dimensions.get("window");
+
 export default function MapPickerScreen({ navigation, route }) {
 
-  const [region, setRegion] = useState(null);
-  const [marker, setMarker] = useState(null);
+  // ✅ DEFAULT LOCATION (instant load)
+  const DEFAULT_REGION = {
+    latitude: 13.0827,
+    longitude: 80.2707,
+    latitudeDelta: 0.01,
+    longitudeDelta: 0.01,
+  };
 
-  // return screen name
+  const [region, setRegion] = useState(DEFAULT_REGION);
+  const [marker, setMarker] = useState({
+    latitude: 13.0827,
+    longitude: 80.2707,
+  });
+
   const returnScreen = route?.params?.returnScreen || "ItemDonation";
 
-  /* ================= GET LOCATION ================= */
   useEffect(() => {
-    getLocation();
+    getLocation(); // run in background
   }, []);
 
   const getLocation = async () => {
     try {
-      console.log("📍 Getting location...");
-
-      // ask permission
       let { status } = await Location.requestForegroundPermissionsAsync();
 
-      if (status !== "granted") {
-        Alert.alert("Permission denied", "Please allow location permission");
-        return;
-      }
+      if (status !== "granted") return;
 
-      // check GPS enabled
       const enabled = await Location.hasServicesEnabledAsync();
-      if (!enabled) {
-        Alert.alert("GPS OFF", "Turn ON location/GPS");
-        return;
-      }
+      if (!enabled) return;
 
-      let loc = null;
+      // ✅ FAST LOCATION (instead of HIGH)
+      let loc = await Location.getCurrentPositionAsync({
+        accuracy: Location.Accuracy.Balanced, // 🔥 FAST FIX
+      });
 
-      // try HIGH accuracy
-      try {
-        loc = await Location.getCurrentPositionAsync({
-          accuracy: Location.Accuracy.High,
-        });
-      } catch (err) {
-        console.log("⚠️ High accuracy failed, using last known");
-        loc = await Location.getLastKnownPositionAsync();
-      }
-
-      // fallback default (Chennai) if still null
-      if (!loc) {
-        console.log("⚠️ Using default Chennai location");
-        loc = {
-          coords: {
-            latitude: 13.0827,
-            longitude: 80.2707,
-          },
+      if (loc) {
+        const newRegion = {
+          latitude: loc.coords.latitude,
+          longitude: loc.coords.longitude,
+          latitudeDelta: 0.01,
+          longitudeDelta: 0.01,
         };
+
+        setRegion(newRegion);
+        setMarker({
+          latitude: loc.coords.latitude,
+          longitude: loc.coords.longitude,
+        });
       }
 
-      const newRegion = {
-        latitude: loc.coords.latitude,
-        longitude: loc.coords.longitude,
-        latitudeDelta: 0.01,
-        longitudeDelta: 0.01,
-      };
-
-      setRegion(newRegion);
-      setMarker({
-        latitude: loc.coords.latitude,
-        longitude: loc.coords.longitude,
-      });
-
-    } catch (err) {
-      console.log("LOCATION ERROR:", err);
-
-      // fallback Chennai
-      const fallback = {
-        latitude: 13.0827,
-        longitude: 80.2707,
-        latitudeDelta: 0.01,
-        longitudeDelta: 0.01,
-      };
-
-      setRegion(fallback);
-      setMarker({
-        latitude: 13.0827,
-        longitude: 80.2707,
-      });
-
-      Alert.alert("Location issue", "Showing default location (Chennai)");
+    } catch {
+      // silent fail (no blocking UI)
     }
   };
 
-  /* ================= USER TAP ================= */
   const selectLocation = (e) => {
     setMarker(e.nativeEvent.coordinate);
   };
 
-  /* ================= CONFIRM ================= */
   const confirmLocation = async () => {
     if (!marker) {
       Alert.alert("Select location first");
@@ -129,17 +99,20 @@ export default function MapPickerScreen({ navigation, route }) {
     }
   };
 
-  /* ================= LOADING ================= */
-  if (!region) {
-    return (
-      <View style={{flex:1,justifyContent:"center",alignItems:"center"}}>
-        <Text>Loading map...</Text>
-      </View>
-    );
-  }
-
   return (
-    <View style={{ flex: 1 }}>
+    <SafeAreaView style={{ flex: 1 }}>
+
+      {/* MAP loads instantly */}
+      <MapView
+        style={{ flex: 1 }}
+        initialRegion={DEFAULT_REGION}   // 🔥 instant render
+        region={region}                 // updates smoothly
+        showsUserLocation={true}
+        showsMyLocationButton={true}
+        onPress={selectLocation}
+      >
+        {marker && <Marker coordinate={marker} />}
+      </MapView>
 
       {/* HEADER */}
       <View style={styles.header}>
@@ -154,59 +127,52 @@ export default function MapPickerScreen({ navigation, route }) {
         </TouchableOpacity>
       </View>
 
-      {/* MAP */}
-      <MapView
-        style={{ flex: 1 }}
-        region={region}
-        showsUserLocation={true}
-        showsMyLocationButton={true}
-        onPress={selectLocation}
-        onRegionChangeComplete={(r) => setRegion(r)}
-      >
-        {marker && <Marker coordinate={marker} />}
-      </MapView>
-
-      {/* CONFIRM BUTTON */}
+      {/* BUTTON */}
       <TouchableOpacity style={styles.btn} onPress={confirmLocation}>
-        <Text style={{ color: "#fff", fontWeight: "700", fontSize:16 }}>
-          Confirm Location
-        </Text>
+        <Text style={styles.btnText}>Confirm Location</Text>
       </TouchableOpacity>
 
-    </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+
   header:{
     position:"absolute",
-    top:50,
-    left:15,
-    right:15,
-    zIndex:10,
+    top: height * 0.02,
+    left: width * 0.04,
+    right: width * 0.04,
     backgroundColor:"#fff",
     flexDirection:"row",
     justifyContent:"space-between",
     alignItems:"center",
-    padding:14,
+    padding: height * 0.018,
     borderRadius:14,
     elevation:6
   },
 
   headerTitle:{
     fontWeight:"700",
-    fontSize:16
+    fontSize: width * 0.045
   },
 
   btn:{
     position:"absolute",
-    bottom:40,
-    left:20,
-    right:20,
+    bottom: height * 0.05,
+    left: width * 0.05,
+    right: width * 0.05,
     backgroundColor:"#7C3AED",
-    padding:18,
+    padding: height * 0.02,
     borderRadius:30,
     alignItems:"center",
     elevation:5
+  },
+
+  btnText:{
+    color:"#fff",
+    fontWeight:"700",
+    fontSize: width * 0.04
   }
+
 });

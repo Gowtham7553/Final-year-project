@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { View, Text, StyleSheet } from "react-native";
 import MapView, { Marker } from "react-native-maps";
 
-const BASE_URL = "http://10.160.239.124:5000";
+const BASE_URL = "http://10.90.184.124:5000";
 
 export default function LiveTrackingScreen({ route }) {
 

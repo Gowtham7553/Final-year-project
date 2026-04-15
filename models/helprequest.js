@@ -21,8 +21,16 @@ const helpRequestSchema = new mongoose.Schema({
 
   status:{
     type:String,
-    default:"Open"
-  }
+    default:"pending"
+  },
+
+  /* 🔥 NEW FIELD (IMPORTANT) */
+  pickupLocation:{
+    latitude: Number,
+    longitude: Number
+  },
+
+  otp: String
 
 },{timestamps:true});
 

@@ -47,11 +47,59 @@ export default function TasksScreen({ navigation }) {
 
   const fetchTasks = async () => {
     try {
-      const res = await fetch(`${BASE_URL}/api/donations/pending`);
-      const data = await res.json();
-      setTasks(data);
-    } catch {
-      Alert.alert("Server error loading tasks");
+      console.log("📦 1. Fetching Donations from:", `${BASE_URL}/api/donations/pending`);
+      const resDonations = await fetch(`${BASE_URL}/api/donations/pending`);
+      console.log("📡 1. Donations Response Status:", resDonations.status);
+      
+      const textDonations = await resDonations.text();
+      console.log("📜 1. RAW Donations Body:", textDonations.substring(0, 50));
+      const donations = JSON.parse(textDonations);
+      console.log("✅ 1. Parsed Donations Count:", donations.length);
+
+      console.log("📦 2. Fetching Help Requests from:", `${BASE_URL}/api/helprequests/assigned`);
+      const resRequests = await fetch(`${BASE_URL}/api/helprequests/assigned`);
+      console.log("📡 2. Help Requests Response Status:", resRequests.status);
+      
+      const textRequests = await resRequests.text();
+      console.log("📜 2. RAW HelpRequests Body:", textRequests.substring(0, 50));
+      const requestsData = JSON.parse(textRequests);
+      console.log("✅ 2. Parsed HelpRequests Count:", requestsData.length);
+
+      // 3. Normalize Help Requests to match Donation structure
+      const normalizedRequests = requestsData.map(req => ({
+        ...req,
+        isHelpRequest: true, // Marker to use different API endpoints
+        items: [{ 
+          category: req.needType || "Help Request", 
+          description: req.description || "Support needed", 
+          quantity: "1" 
+        }],
+        donorAddress: "Home Pickup",
+        homeAddress: req.homeId?.fullAddress || "Home Location",
+        donorLocation: { 
+          lat: req.pickupLocation?.latitude, 
+          lng: req.pickupLocation?.longitude 
+        },
+        homeLocation: {
+          lat: req.homeId?.location?.latitude,
+          lng: req.homeId?.location?.longitude
+        },
+        // Normalize status for UI
+        status: req.status === "assigned" ? "Accepted" : req.status
+      }));
+
+      const combined = [...donations, ...normalizedRequests];
+      
+      console.log("📡 Total combined tasks:", combined.length);
+      setTasks(combined);
+
+    } catch (err) {
+      console.log("❌ Catch Block Triggered in fetchTasks!");
+      console.log("❌ Error Name:", err.name);
+      console.log("❌ Error Message:", err.message);
+      if (err.cause) console.log("❌ Error Cause:", err.cause);
+      
+      Alert.alert("Server error loading tasks", err.message);
     }
   };
 
@@ -119,13 +167,16 @@ export default function TasksScreen({ navigation }) {
   };
 
   /* ================= MARK PICKED ================= */
-  const markPicked = async (id) => {
+  const markPicked = async (task) => {
     try {
-      await fetch(`${BASE_URL}/api/donations/pickup/${id}`, {
-        method: "PUT",
-      });
+      const endpoint = task.isHelpRequest 
+        ? `${BASE_URL}/api/helprequests/pickup/${task._id}`
+        : `${BASE_URL}/api/donations/pickup/${task._id}`;
 
-      startLiveTracking(id);
+      await fetch(endpoint, { method: "PUT" });
+
+      if (!task.isHelpRequest) startLiveTracking(task._id);
+      
       Alert.alert("Picked", "Now navigate to home");
       fetchTasks();
     } catch {
@@ -142,17 +193,19 @@ export default function TasksScreen({ navigation }) {
 
   const verifyOtp = async () => {
     try {
-      const res = await fetch(
-        `${BASE_URL}/api/donations/verify-otp/${selectedDonation}`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ otp }),
-        }
-      );
+      const task = tasks.find(t => t._id === selectedDonation);
+      const endpoint = task?.isHelpRequest
+        ? `${BASE_URL}/api/helprequests/complete/${selectedDonation}`
+        : `${BASE_URL}/api/donations/verify-otp/${selectedDonation}`;
+
+      const res = await fetch(endpoint, {
+        method: task?.isHelpRequest ? "PUT" : "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ otp }),
+      });
 
       if (!res.ok) {
-        Alert.alert("Wrong OTP");
+        Alert.alert(task?.isHelpRequest ? "Completion failed" : "Wrong OTP");
         return;
       }
 
@@ -170,9 +223,13 @@ export default function TasksScreen({ navigation }) {
 
     let destination = "";
 
-    // BEFORE PICKUP → GO TO DONOR
+    // BEFORE PICKUP → GO TO DONOR (use pickup coordinates if available)
     if (task.status === "Pending" || task.status === "Accepted") {
-      destination = task.donorAddress;
+      if (task.pickupLocation?.latitude && task.pickupLocation?.longitude) {
+        destination = `${task.pickupLocation.latitude},${task.pickupLocation.longitude}`;
+      } else {
+        destination = task.donorAddress;
+      }
     }
 
     // AFTER PICKED → GO TO HOME
@@ -271,10 +328,34 @@ export default function TasksScreen({ navigation }) {
               <Text style={styles.metaText}>Pickup: {task.donorAddress}</Text>
             </View>
 
+            {/* 📍 PICKUP LOCATION COORDINATES */}
+            {(task.pickupLocation?.latitude || task.donorLocation?.lat) && (
+              <View style={styles.locationBox}>
+                <Ionicons name="navigate-circle-outline" size={16} color="#7C3AED" />
+                <Text style={styles.locationText}>
+                  📍 Pickup GPS: {
+                    task.pickupLocation?.latitude
+                      ? `${task.pickupLocation.latitude.toFixed(4)}, ${task.pickupLocation.longitude.toFixed(4)}`
+                      : `${task.donorLocation.lat.toFixed(4)}, ${task.donorLocation.lng.toFixed(4)}`
+                  }
+                </Text>
+              </View>
+            )}
+
             <View style={styles.metaItem}>
               <Ionicons name="location-outline" size={14} />
               <Text style={styles.metaText}>Drop: {task.homeAddress}</Text>
             </View>
+
+            {/* 📍 DROP LOCATION COORDINATES */}
+            {task.homeLocation?.lat && (
+              <View style={styles.locationBox}>
+                <Ionicons name="home-outline" size={16} color="#16A34A" />
+                <Text style={[styles.locationText, {color: "#16A34A"}]}>
+                  🏠 Drop GPS: {task.homeLocation.lat.toFixed(4)}, {task.homeLocation.lng.toFixed(4)}
+                </Text>
+              </View>
+            )}
 
             {/* 🔥 MAP BUTTON FIXED */}
             <TouchableOpacity
@@ -294,7 +375,7 @@ export default function TasksScreen({ navigation }) {
             {task.status === "Accepted" && (
               <TouchableOpacity
                 style={[styles.acceptBtn,{backgroundColor:"#F59E0B"}]}
-                onPress={() => markPicked(task._id)}
+                onPress={() => markPicked(task)}
               >
                 <Text style={styles.btnText}>Mark Picked</Text>
               </TouchableOpacity>
@@ -362,6 +443,8 @@ title:{fontWeight:"700",fontSize:15,marginBottom:4},
 desc:{fontSize:13,color:"#6B7280",marginBottom:10},
 metaItem:{flexDirection:"row",alignItems:"center",marginTop:4},
 metaText:{marginLeft:6,fontSize:12,color:"#6B7280"},
+locationBox:{flexDirection:"row",alignItems:"center",marginTop:6,backgroundColor:"#F3F0FF",paddingHorizontal:10,paddingVertical:6,borderRadius:10},
+locationText:{marginLeft:6,fontSize:12,color:"#7C3AED",fontWeight:"600"},
 acceptBtn:{backgroundColor:PURPLE,padding:12,borderRadius:12,marginTop:12,alignItems:"center"},
 btnText:{color:"#fff",fontWeight:"700"},
 mapBtn:{backgroundColor:"#2563EB",padding:10,borderRadius:10,marginTop:10,flexDirection:"row",justifyContent:"center",alignItems:"center"},

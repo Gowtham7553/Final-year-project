@@ -25,9 +25,13 @@ const homeSchema = new mongoose.Schema(
   },
 
   about:String,
-  capacity:String,
 
-  // 📸 image
+  // ✅ FIX (string → number)
+  capacity:{
+    type:Number,
+    default:0
+  },
+
   image:String,
 
   address:{
@@ -36,7 +40,6 @@ const homeSchema = new mongoose.Schema(
     zipCode:String
   },
 
-  // 📍 GPS LOCATION
   location:{
     latitude:{ type:Number, default:0 },
     longitude:{ type:Number, default:0 }
@@ -54,9 +57,7 @@ const homeSchema = new mongoose.Schema(
     default:true
   },
 
-  /* ===============================
-     🧠 AI LEVEL 5 FIELDS
-  ===============================*/
+  /* ===== AI FIELDS ===== */
 
   people:{
     type:Number,

@@ -10,8 +10,9 @@ import {
 } from "react-native";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { SafeAreaView } from "react-native-safe-area-context"; // ✅ added
 
-const { width } = Dimensions.get("window");
+const { width, height } = Dimensions.get("window");
 const scale = width / 375;
 const normalize = (size) => Math.round(scale * size);
 
@@ -39,139 +40,163 @@ export default function DonorHubScreen({ navigation }) {
   }
 
   return (
-    <View style={styles.container}>
-      <ScrollView showsVerticalScrollIndicator={false}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: "#F9FAFB" }}>
+      <View style={styles.container}>
+        <ScrollView showsVerticalScrollIndicator={false}>
 
-        {/* HEADER */}
-        <View style={styles.header}>
-          <TouchableOpacity
-            onPress={() =>
-              navigation.reset({
-                index: 0,
-                routes: [{ name: "Login" }],
-              })
-            }
-          >
-            <Ionicons name="arrow-back" size={normalize(22)} />
-          </TouchableOpacity>
+          {/* HEADER */}
+          <View style={styles.header}>
+            <TouchableOpacity
+              onPress={() =>
+                navigation.reset({
+                  index: 0,
+                  routes: [{ name: "Login" }],
+                })
+              }
+            >
+              <Ionicons name="arrow-back" size={normalize(22)} />
+            </TouchableOpacity>
 
-          <Text style={styles.headerTitle}>Donor Hub</Text>
+            <Text style={styles.headerTitle}>Donor Hub</Text>
 
-          <TouchableOpacity
-            onPress={() => navigation.navigate("DonorNotification")}
-          >
-            <Ionicons name="notifications-outline" size={normalize(22)} />
-          </TouchableOpacity>
-        </View>
-
-        {/* HERO */}
-        <ImageBackground
-          source={require("../assets/donorhero.jpg")}
-          style={styles.heroCard}
-          imageStyle={{ borderRadius: normalize(18) }}
-        >
-          <View style={styles.heroOverlay}>
-            <Text style={styles.heroTag}>HOPE CONNECT</Text>
-            <Text style={styles.heroTitle}>Welcome, Changemaker</Text>
-            <Text style={styles.heroDesc}>
-              Your journey to making a difference starts here.
-            </Text>
+            <TouchableOpacity
+              onPress={() => navigation.navigate("DonorNotification")}
+            >
+              <Ionicons name="notifications-outline" size={normalize(22)} />
+            </TouchableOpacity>
           </View>
-        </ImageBackground>
 
-        {/* QUICK ACTIONS */}
-        <Text style={styles.sectionTitle}>Quick Actions</Text>
-
-        {/* DONATE MONEY */}
-        <View style={styles.donateCard}>
-          <View style={styles.donateLeft}>
-            <View style={styles.iconCircle}>
-              <Ionicons name="hand-left" size={normalize(20)} color="#7C3AED" />
-            </View>
-            <View>
-              <Text style={styles.donateTitle}>Make a Donation</Text>
-              <Text style={styles.donateDesc}>
-                Securely support a child
+          {/* HERO */}
+          <ImageBackground
+            source={require("../assets/donorhero.jpg")}
+            style={styles.heroCard}
+            imageStyle={{ borderRadius: normalize(18) }}
+          >
+            <View style={styles.heroOverlay}>
+              <Text style={styles.heroTag}>HOPE CONNECT</Text>
+              <Text style={styles.heroTitle}>Welcome, Changemaker</Text>
+              <Text style={styles.heroDesc}>
+                Your journey to making a difference starts here.
               </Text>
             </View>
+          </ImageBackground>
+
+          {/* QUICK ACTIONS */}
+          <Text style={styles.sectionTitle}>Quick Actions</Text>
+
+          {/* DONATE */}
+          <View style={styles.donateCard}>
+            <View style={styles.donateLeft}>
+              <View style={styles.iconCircle}>
+                <Ionicons name="hand-left" size={normalize(20)} color="#7C3AED" />
+              </View>
+              <View>
+                <Text style={styles.donateTitle}>Make a Donation</Text>
+                <Text style={styles.donateDesc}>
+                  Securely support a child
+                </Text>
+              </View>
+            </View>
+
+            <TouchableOpacity
+              style={styles.donateBtn}
+              onPress={() => navigation.navigate("Donate", { donorId })}
+            >
+              <Text style={styles.donateBtnText}>Donate</Text>
+            </TouchableOpacity>
           </View>
 
-          <TouchableOpacity
-            style={styles.donateBtn}
-            onPress={() => navigation.navigate("Donate", { donorId })}
-          >
-            <Text style={styles.donateBtnText}>Donate</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* GRID */}
-        <View style={styles.grid}>
-
-          <TouchableOpacity
-            style={styles.gridCard}
-            onPress={() => navigation.navigate("ItemDonation")}
-          >
-            <View style={[styles.gridIcon,{backgroundColor:"#EDE9FE"}]}>
-              <Ionicons name="cube-outline" size={normalize(22)} color="#7C3AED" />
+          {/* 🔥 NEW BUTTON (NO UI CHANGE STYLE) */}
+          <View style={styles.donateCard}>
+            <View style={styles.donateLeft}>
+              <View style={styles.iconCircle}>
+                <Ionicons name="document-text-outline" size={normalize(20)} color="#7C3AED" />
+              </View>
+              <View>
+                <Text style={styles.donateTitle}>Requests from Home</Text>
+                <Text style={styles.donateDesc}>
+                  View requests from NGOs
+                </Text>
+              </View>
             </View>
-            <Text style={styles.gridTitle}>Donate Items</Text>
-            <Text style={styles.gridDesc}>Give daily needs & supplies</Text>
-          </TouchableOpacity>
 
-          <TouchableOpacity
-            style={styles.gridCard}
-            onPress={() => navigation.navigate("TrackDonation",{ donorId })}
-          >
-            <View style={[styles.gridIcon,{backgroundColor:"#DBEAFE"}]}>
-              <Ionicons name="navigate" size={normalize(22)} color="#2563EB"/>
-            </View>
-            <Text style={styles.gridTitle}>Track Delivery</Text>
-            <Text style={styles.gridDesc}>Live volunteer tracking</Text>
-          </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.donateBtn}
+              onPress={() => navigation.navigate("HomeRequestScreen", { donorId })}
+            >
+              <Text style={styles.donateBtnText}>View</Text>
+            </TouchableOpacity>
+          </View>
 
-          <TouchableOpacity
-            style={styles.gridCard}
-            onPress={() => navigation.navigate("DonationHistory",{ donorId })}
-          >
-            <View style={[styles.gridIcon,{backgroundColor:"#FEF3C7"}]}>
-              <Ionicons name="time-outline" size={normalize(22)} color="#D97706"/>
-            </View>
-            <Text style={styles.gridTitle}>Donation History</Text>
-            <Text style={styles.gridDesc}>Track your past contributions</Text>
-          </TouchableOpacity>
+          {/* GRID */}
+          <View style={styles.grid}>
 
-          <TouchableOpacity
-            style={styles.gridCard}
-            onPress={() => navigation.navigate("DonorProfile",{ donorId })}
-          >
-            <View style={[styles.gridIcon,{backgroundColor:"#E0F2FE"}]}>
-              <Ionicons name="person-outline" size={normalize(22)} color="#0284C7"/>
-            </View>
-            <Text style={styles.gridTitle}>My Profile</Text>
-            <Text style={styles.gridDesc}>Manage your personal details</Text>
-          </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.gridCard}
+              onPress={() => navigation.navigate("ItemDonation")}
+            >
+              <View style={[styles.gridIcon,{backgroundColor:"#EDE9FE"}]}>
+                <Ionicons name="cube-outline" size={normalize(22)} color="#7C3AED" />
+              </View>
+              <Text style={styles.gridTitle}>Donate Items</Text>
+              <Text style={styles.gridDesc}>Give daily needs & supplies</Text>
+            </TouchableOpacity>
 
-          <TouchableOpacity
-            onPress={() => navigation.navigate("Chatbot")}
-            style={styles.chatFloat}
-          >
-            <MaterialIcons name="support-agent" size={normalize(24)} color="#fff"/>
-          </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.gridCard}
+              onPress={() => navigation.navigate("TrackDonation",{ donorId })}
+            >
+              <View style={[styles.gridIcon,{backgroundColor:"#DBEAFE"}]}>
+                <Ionicons name="navigate" size={normalize(22)} color="#2563EB"/>
+              </View>
+              <Text style={styles.gridTitle}>Track Delivery</Text>
+              <Text style={styles.gridDesc}>Live volunteer tracking</Text>
+            </TouchableOpacity>
 
-        </View>
+            <TouchableOpacity
+              style={styles.gridCard}
+              onPress={() => navigation.navigate("DonationHistory",{ donorId })}
+            >
+              <View style={[styles.gridIcon,{backgroundColor:"#FEF3C7"}]}>
+                <Ionicons name="time-outline" size={normalize(22)} color="#D97706"/>
+              </View>
+              <Text style={styles.gridTitle}>Donation History</Text>
+              <Text style={styles.gridDesc}>Track your past contributions</Text>
+            </TouchableOpacity>
 
-        {/* INFO */}
-        <View style={styles.infoBox}>
-          <Ionicons name="bulb-outline" size={normalize(20)} color="#7C3AED" />
-          <Text style={styles.infoText}>
-            Did you know? Just <Text style={styles.bold}>₹500</Text> provides a week of nutritious meals for a child.
-          </Text>
-        </View>
+            <TouchableOpacity
+              style={styles.gridCard}
+              onPress={() => navigation.navigate("DonorProfile",{ donorId })}
+            >
+              <View style={[styles.gridIcon,{backgroundColor:"#E0F2FE"}]}>
+                <Ionicons name="person-outline" size={normalize(22)} color="#0284C7"/>
+              </View>
+              <Text style={styles.gridTitle}>My Profile</Text>
+              <Text style={styles.gridDesc}>Manage your personal details</Text>
+            </TouchableOpacity>
 
-        <View style={{ height: normalize(80) }} />
+            <TouchableOpacity
+              onPress={() => navigation.navigate("Chatbot")}
+              style={styles.chatFloat}
+            >
+              <MaterialIcons name="support-agent" size={normalize(24)} color="#fff"/>
+            </TouchableOpacity>
 
-      </ScrollView>
-    </View>
+          </View>
+
+          {/* INFO */}
+          <View style={styles.infoBox}>
+            <Ionicons name="bulb-outline" size={normalize(20)} color="#7C3AED" />
+            <Text style={styles.infoText}>
+              Did you know? Just <Text style={styles.bold}>₹500</Text> provides a week of nutritious meals for a child.
+            </Text>
+          </View>
+
+          <View style={{ height: normalize(80) }} />
+
+        </ScrollView>
+      </View>
+    </SafeAreaView>
   );
 }
 

@@ -6,9 +6,16 @@ import {
   TextInput,
   TouchableOpacity,
   Alert,
+  ScrollView,
+  Dimensions,
+  KeyboardAvoidingView,   // ✅ ADDED
+  Platform,               // ✅ ADDED
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+
+const { width, height } = Dimensions.get("window");
 
 const BASE_URL = "http://10.90.184.124:5000";
 
@@ -17,8 +24,6 @@ export default function LoginScreen({ navigation }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-
-  // ✅ ADDED: password visibility state
   const [showPassword, setShowPassword] = useState(false);
 
   const handleLogin = async () => {
@@ -33,11 +38,7 @@ export default function LoginScreen({ navigation }) {
       const response = await fetch(`${BASE_URL}/api/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email,
-          password,
-          role,
-        }),
+        body: JSON.stringify({ email, password, role }),
       });
 
       const data = await response.json();
@@ -55,29 +56,24 @@ export default function LoginScreen({ navigation }) {
           "volunteer",
           JSON.stringify({ volunteerId: data.userId })
         );
-
         navigation.reset({
           index: 0,
           routes: [{ name: "VolunteerHub" }],
         });
-
       } else if (role === "Donor") {
         await AsyncStorage.setItem(
           "donor",
           JSON.stringify({ donorId: data.userId })
         );
-
         navigation.reset({
           index: 0,
           routes: [{ name: "DonorHub" }],
         });
-
       } else if (role === "Home") {
         await AsyncStorage.setItem(
           "home",
           JSON.stringify({ homeId: data.userId })
         );
-
         navigation.reset({
           index: 0,
           routes: [
@@ -88,7 +84,6 @@ export default function LoginScreen({ navigation }) {
           ],
         });
       }
-
     } catch (error) {
       Alert.alert("Error", "Server not reachable");
     } finally {
@@ -97,92 +92,107 @@ export default function LoginScreen({ navigation }) {
   };
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.navigate("Welcome")}>
-          <Ionicons name="arrow-back" size={22} />
-        </TouchableOpacity>
+    <SafeAreaView style={{ flex: 1, backgroundColor: "#F7F5FF" }}>
+      
+      {/* ✅ KEYBOARD FIX */}
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={{ flex: 1 }}
+      >
+        <ScrollView
+          contentContainerStyle={{ flexGrow: 1, paddingBottom: height * 0.1 }} // ✅ IMPORTANT
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled" // ✅ IMPORTANT
+        >
+          <View style={styles.container}>
 
-        <View style={styles.headerCenter}>
-          <Ionicons name="hand-left" size={20} color="#8B5CF6" />
-          <Text style={styles.logoText}>Hope Connect</Text>
-        </View>
+            <View style={styles.header}>
+              <TouchableOpacity onPress={() => navigation.navigate("Welcome")}>
+                <Ionicons name="arrow-back" size={22} />
+              </TouchableOpacity>
 
-        <View style={{ width: 22 }} />
-      </View>
+              <View style={styles.headerCenter}>
+                <Ionicons name="hand-left" size={20} color="#8B5CF6" />
+                <Text style={styles.logoText}>Hope Connect</Text>
+              </View>
 
-      <Text style={styles.title}>Welcome Back</Text>
-      <Text style={styles.subtitle}>
-        Enter your details to continue your impact.
-      </Text>
+              <View style={{ width: 22 }} />
+            </View>
 
-      <View style={styles.roleSwitch}>
-        {["Volunteer", "Donor", "Home"].map((item) => {
-          const active = role === item;
-          return (
+            <Text style={styles.title}>Welcome Back</Text>
+            <Text style={styles.subtitle}>
+              Enter your details to continue your impact.
+            </Text>
+
+            <View style={styles.roleSwitch}>
+              {["Volunteer", "Donor", "Home"].map((item) => {
+                const active = role === item;
+                return (
+                  <TouchableOpacity
+                    key={item}
+                    style={[styles.roleBtn, active && styles.roleActive]}
+                    onPress={() => setRole(item)}
+                  >
+                    <Text
+                      style={[styles.roleText, active && styles.roleTextActive]}
+                    >
+                      {item}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+
+            <Text style={styles.roleLabel}>SELECT ACCOUNT TYPE</Text>
+
+            <Text style={styles.label}>Email</Text>
+            <View style={styles.inputBox}>
+              <Ionicons name="mail-outline" size={18} color="#9CA3AF" />
+              <TextInput
+                style={styles.input}
+                placeholder="hello@hopeconnect.org"
+                keyboardType="email-address"
+                value={email}
+                onChangeText={setEmail}
+                autoCapitalize="none"
+              />
+            </View>
+
+            <Text style={styles.label}>Password</Text>
+            <View style={styles.inputBox}>
+              <Ionicons name="lock-closed-outline" size={18} color="#9CA3AF" />
+
+              <TextInput
+                style={styles.input}
+                placeholder="••••••••"
+                secureTextEntry={!showPassword}
+                value={password}
+                onChangeText={setPassword}
+              />
+
+              <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+                <Ionicons
+                  name={showPassword ? "eye-off-outline" : "eye-outline"}
+                  size={18}
+                  color="#9CA3AF"
+                />
+              </TouchableOpacity>
+            </View>
+
             <TouchableOpacity
-              key={item}
-              style={[styles.roleBtn, active && styles.roleActive]}
-              onPress={() => setRole(item)}
+              style={styles.loginBtn}
+              onPress={handleLogin}
+              disabled={loading}
             >
-              <Text
-                style={[styles.roleText, active && styles.roleTextActive]}
-              >
-                {item}
+              <Text style={styles.loginText}>
+                {loading ? "Logging in..." : "Login"}
               </Text>
             </TouchableOpacity>
-          );
-        })}
-      </View>
 
-      <Text style={styles.roleLabel}>SELECT ACCOUNT TYPE</Text>
-
-      <Text style={styles.label}>Email</Text>
-      <View style={styles.inputBox}>
-        <Ionicons name="mail-outline" size={18} color="#9CA3AF" />
-        <TextInput
-          style={styles.input}
-          placeholder="hello@hopeconnect.org"
-          keyboardType="email-address"
-          value={email}
-          onChangeText={setEmail}
-          autoCapitalize="none"
-        />
-      </View>
-
-      <Text style={styles.label}>Password</Text>
-      <View style={styles.inputBox}>
-        <Ionicons name="lock-closed-outline" size={18} color="#9CA3AF" />
-        
-        <TextInput
-          style={styles.input}
-          placeholder="••••••••"
-          secureTextEntry={!showPassword}   // ✅ FIXED
-          value={password}
-          onChangeText={setPassword}
-        />
-
-        {/* ✅ FIXED: Touchable eye icon */}
-        <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-          <Ionicons
-            name={showPassword ? "eye-off-outline" : "eye-outline"}
-            size={18}
-            color="#9CA3AF"
-          />
-        </TouchableOpacity>
-
-      </View>
-
-      <TouchableOpacity
-        style={styles.loginBtn}
-        onPress={handleLogin}
-        disabled={loading}
-      >
-        <Text style={styles.loginText}>
-          {loading ? "Logging in..." : "Login"}
-        </Text>
-      </TouchableOpacity>
-    </View>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 
@@ -191,8 +201,7 @@ const PURPLE = "#8B5CF6";
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F7F5FF",
-    paddingHorizontal: 20,
+    paddingHorizontal: width * 0.05,
     paddingTop: 16,
   },
   header: {
@@ -211,7 +220,7 @@ const styles = StyleSheet.create({
     color: PURPLE,
   },
   title: {
-    fontSize: 28,
+    fontSize: width * 0.07,
     fontWeight: "800",
     color: "#3B1D6A",
     marginBottom: 8,
@@ -219,6 +228,7 @@ const styles = StyleSheet.create({
   subtitle: {
     color: "#6B7280",
     marginBottom: 24,
+    fontSize: width * 0.035,
   },
   roleSwitch: {
     flexDirection: "row",
@@ -239,6 +249,7 @@ const styles = StyleSheet.create({
   roleText: {
     fontWeight: "600",
     color: "#6B7280",
+    fontSize: width * 0.035,
   },
   roleTextActive: {
     color: PURPLE,
@@ -270,23 +281,16 @@ const styles = StyleSheet.create({
     flex: 1,
     marginLeft: 8,
   },
-  forgot: {
-    alignSelf: "flex-end",
-    marginBottom: 30,
-  },
-  forgotText: {
-    color: PURPLE,
-    fontWeight: "600",
-  },
   loginBtn: {
     backgroundColor: PURPLE,
     paddingVertical: 16,
     borderRadius: 30,
     alignItems: "center",
+    marginTop: 10,
   },
   loginText: {
     color: "#fff",
-    fontSize: 16,
+    fontSize: width * 0.04,
     fontWeight: "700",
   },
 });

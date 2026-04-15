@@ -8,30 +8,42 @@ import {
   StyleSheet,
   KeyboardAvoidingView,
   Platform,
-  ActivityIndicator
+  ActivityIndicator,
+  Dimensions
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { MaterialIcons } from "@expo/vector-icons";
+
+const { width, height } = Dimensions.get("window");
+
+// 🔴 CHANGE THIS TO YOUR PC IP
+const API_URL = "http://10.90.184.124:5000/api/ai/chat";
 
 export default function ChatbotScreen() {
 
   const flatListRef = useRef();
 
   const [messages, setMessages] = useState([
-    { id: "1", text: "Hi 👋 I am HopeConnect AI.\nAsk about donate, volunteer or urgent help.", sender: "bot" }
+    {
+      id: "1",
+      text: "Hi 👋 I am HopeConnect AI.\nAsk about donate, volunteer or urgent help.",
+      sender: "bot"
+    }
   ]);
 
   const [input, setInput] = useState("");
   const [typing, setTyping] = useState(false);
 
   useEffect(() => {
-    flatListRef.current?.scrollToEnd({ animated: true });
+    setTimeout(() => {
+      flatListRef.current?.scrollToEnd({ animated: true });
+    }, 100);
   }, [messages]);
 
-  /* ===============================
-     SEND MESSAGE TO BACKEND
-  ===============================*/
+  /* ================= SEND MESSAGE ================= */
   const sendMessage = async (customText) => {
+
+    if (typing) return;
 
     const text = customText || input.trim();
     if (!text) return;
@@ -47,7 +59,8 @@ export default function ChatbotScreen() {
     setTyping(true);
 
     try {
-      const response = await fetch("http://10.90.184.124:5000/api/ai/chat", {
+      // ✅ THIS IS WHERE YOUR FETCH GOES
+      const response = await fetch(API_URL, {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
@@ -57,16 +70,20 @@ export default function ChatbotScreen() {
 
       const data = await response.json();
 
+      console.log("BACKEND RESPONSE:", data);
+
+      const botReply = data?.reply || "⚠️ No response from AI";
+
       const botMsg = {
-        id: (Date.now()+1).toString(),
-        text: data.reply,
+        id: (Date.now() + 1).toString(),
+        text: botReply,
         sender: "bot"
       };
 
       setMessages(prev => [...prev, botMsg]);
 
     } catch (error) {
-      console.log("AI ERROR:", error);
+      console.log("API ERROR:", error);
 
       setMessages(prev => [
         ...prev,
@@ -82,57 +99,61 @@ export default function ChatbotScreen() {
   };
 
   return (
-    <SafeAreaView style={{flex:1, backgroundColor:"#F8F9FD"}}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: "#F8F9FD" }}>
       <KeyboardAvoidingView
-        style={{flex:1}}
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-        keyboardVerticalOffset={80}
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 80 : 20}
       >
 
-        {/* CHAT LIST */}
         <FlatList
           ref={flatListRef}
           data={messages}
-          keyExtractor={(item)=>item.id}
-          contentContainerStyle={{padding:15, paddingBottom:90}}
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={{
+            padding: width * 0.04,
+            paddingBottom: height * 0.12
+          }}
           showsVerticalScrollIndicator={false}
-          renderItem={({item})=>(
-            <View style={[
-              styles.message,
-              item.sender==="user"?styles.user:styles.bot
-            ]}>
-              <Text style={{
-                color:item.sender==="user"?"#fff":"#000",
-                fontSize:15
-              }}>
+          keyboardShouldPersistTaps="handled"
+          renderItem={({ item }) => (
+            <View
+              style={[
+                styles.message,
+                item.sender === "user" ? styles.user : styles.bot
+              ]}
+            >
+              <Text
+                style={{
+                  color: item.sender === "user" ? "#fff" : "#000",
+                  fontSize: width * 0.038
+                }}
+              >
                 {item.text}
               </Text>
             </View>
           )}
         />
 
-        {/* typing indicator */}
         {typing && (
-          <View style={{flexDirection:"row", paddingLeft:20, paddingBottom:5}}>
-            <ActivityIndicator size="small" color="#7C3AED"/>
-            <Text style={{marginLeft:6}}>AI thinking...</Text>
+          <View style={{ flexDirection: "row", paddingLeft: 20 }}>
+            <ActivityIndicator size="small" color="#7C3AED" />
+            <Text style={{ marginLeft: 6 }}>AI thinking...</Text>
           </View>
         )}
 
-        {/* QUICK BUTTONS */}
         <View style={styles.quickRow}>
-          {["Donate","Volunteer","Urgent","Nearest"].map((item)=>(
+          {["Donate", "Volunteer", "Urgent", "Nearest"].map((item) => (
             <TouchableOpacity
               key={item}
               style={styles.quickBtn}
-              onPress={()=>sendMessage(item)}
+              onPress={() => sendMessage(item)}
             >
               <Text style={styles.quickText}>{item}</Text>
             </TouchableOpacity>
           ))}
         </View>
 
-        {/* INPUT */}
         <View style={styles.inputRow}>
           <TextInput
             placeholder="Ask HopeConnect AI..."
@@ -144,9 +165,9 @@ export default function ChatbotScreen() {
 
           <TouchableOpacity
             style={styles.send}
-            onPress={()=>sendMessage()}
+            onPress={() => sendMessage()}
           >
-            <MaterialIcons name="send" size={22} color="#fff"/>
+            <MaterialIcons name="send" size={22} color="#fff" />
           </TouchableOpacity>
         </View>
 
@@ -156,62 +177,52 @@ export default function ChatbotScreen() {
 }
 
 const styles = StyleSheet.create({
-
-message:{
-  padding:12,
-  borderRadius:18,
-  marginVertical:6,
-  maxWidth:"85%"
-},
-
-user:{
-  backgroundColor:"#7C3AED",
-  alignSelf:"flex-end"
-},
-
-bot:{
-  backgroundColor:"#E5E7EB",
-  alignSelf:"flex-start"
-},
-
-inputRow:{
-  flexDirection:"row",
-  padding:10,
-  alignItems:"center"
-},
-
-input:{
-  flex:1,
-  backgroundColor:"#fff",
-  borderRadius:25,
-  paddingHorizontal:15,
-  paddingVertical:10,
-  maxHeight:100
-},
-
-send:{
-  backgroundColor:"#7C3AED",
-  padding:12,
-  borderRadius:25,
-  marginLeft:8
-},
-
-quickRow:{
-  flexDirection:"row",
-  justifyContent:"space-around",
-  paddingVertical:10
-},
-
-quickBtn:{
-  backgroundColor:"#DDD6FE",
-  paddingVertical:8,
-  paddingHorizontal:15,
-  borderRadius:20
-},
-
-quickText:{
-  color:"#5B21B6",
-  fontWeight:"600"
-}
-
+  message: {
+    padding: width * 0.03,
+    borderRadius: 18,
+    marginVertical: 6,
+    maxWidth: "85%"
+  },
+  user: {
+    backgroundColor: "#7C3AED",
+    alignSelf: "flex-end"
+  },
+  bot: {
+    backgroundColor: "#E5E7EB",
+    alignSelf: "flex-start"
+  },
+  inputRow: {
+    flexDirection: "row",
+    padding: width * 0.03,
+    alignItems: "center"
+  },
+  input: {
+    flex: 1,
+    backgroundColor: "#fff",
+    borderRadius: 25,
+    paddingHorizontal: 15,
+    paddingVertical: 10,
+    maxHeight: 100
+  },
+  send: {
+    backgroundColor: "#7C3AED",
+    padding: width * 0.03,
+    borderRadius: 25,
+    marginLeft: 8
+  },
+  quickRow: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    paddingVertical: height * 0.01
+  },
+  quickBtn: {
+    backgroundColor: "#DDD6FE",
+    paddingVertical: 8,
+    paddingHorizontal: 15,
+    borderRadius: 20
+  },
+  quickText: {
+    color: "#5B21B6",
+    fontWeight: "600"
+  }
 });
